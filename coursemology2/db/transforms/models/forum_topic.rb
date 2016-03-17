@@ -1,0 +1,50 @@
+module CoursemologyV1::Source
+  def_model 'forum_topics' do
+    belongs_to :forum, class_name: ForumForum.name, inverse_of: nil
+
+    scope :within_courses, ->(course_ids) do
+      joins(:forum).where(forum: { course_id: Array(course_ids)})
+    end
+
+    def transform_topic_type
+      # V1:
+      # TOPIC_TYPES = [
+      #   ['Normal', 0],
+      #   ['Question', 1],
+      #   ['Sticky', 2],
+      #   ['Announcement', 3]
+      # ]
+
+      # V2:
+      # enum topic_type: { normal: 0, question: 1, sticky: 2, announcement: 3 }
+
+      case topic_type
+      when 0
+        :normal
+      when 1
+        :question
+      when 2
+        :sticky
+      when 3
+        :announcement
+      end
+    end
+
+    def transform_creator_id
+      # author id references to UserCourse
+      dst_course_user_id = CoursemologyV1::Source::UserCourse.transform(author_id)
+      user_id = ::CourseUser.find_by(id: dst_course_user_id).try(:user_id)
+      puts "User not found #{source_record.class} #{source_record.id}" unless user_id
+      user_id
+    end
+  end
+
+  ::Course::Forum::Topic.class_eval do
+    # Do not build initial post
+    def generate_initial_post
+    end
+
+    def set_initial_post_title
+    end
+  end
+end
