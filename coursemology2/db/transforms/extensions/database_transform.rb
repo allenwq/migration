@@ -57,7 +57,7 @@ DatabaseTransform::SchemaTableRecordMapping.module_eval do
   end
 
   def mapping
-    @mapping ||= mapping_data
+    @mapping ||= store.get(store_key)
   end
 
   def reset_mapping
@@ -65,7 +65,7 @@ DatabaseTransform::SchemaTableRecordMapping.module_eval do
   end
 
   def persist_mapping
-    store.set(store_key, mapping.to_json)
+    store.set(store_key, mapping)
   end
 
   private
@@ -74,16 +74,31 @@ DatabaseTransform::SchemaTableRecordMapping.module_eval do
     'data_migration_v2_' + self.table_name
   end
 
-  def mapping_data
-    data = store.get(store_key)
-    if data
-      JSON.parse(data)
+  def store
+    @store ||= YAMLStore.new
+  end
+end
+
+class YAMLStore
+  STORE_PATH = Rails.root.join('db/transforms/saved_mappings')
+
+  def initialize
+    FileUtils.mkdir(STORE_PATH) unless File.exist?(STORE_PATH)
+  end
+
+  def get(key)
+    path = File.join(STORE_PATH, "#{key}.yaml")
+    if File.exist?(path)
+      YAML.load(File.open(path))
     else
       {}
     end
   end
 
-  def store
-    $redis ||= Redis.new
+  def set(key, data)
+    path = File.join(STORE_PATH, "#{key}.yaml")
+    file = File.open(path, 'w')
+    file.write data.to_yaml
+    file.close
   end
 end
