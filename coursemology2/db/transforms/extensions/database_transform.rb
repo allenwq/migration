@@ -80,7 +80,7 @@ DatabaseTransform::SchemaTableRecordMapping.module_eval do
 end
 
 class YAMLStore
-  STORE_PATH = Rails.root.join('db/transforms/saved_mappings')
+  STORE_PATH = Rails.root.join('tmp/saved_mappings')
 
   def initialize
     FileUtils.mkdir(STORE_PATH) unless File.exist?(STORE_PATH)
