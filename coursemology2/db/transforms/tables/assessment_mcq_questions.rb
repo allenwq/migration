@@ -16,7 +16,7 @@ def transform_assessment_mcq_questions(course_ids = [])
       source_record.assessment_question.max_grade.to_i
     end
     column to: :weight do
-      source_record.assessment_question.question_assessments.first.position
+      source_record.assessment_question.question_assessments.first.position || 0
     end
     column to: :question_type do
       if source_record.select_all

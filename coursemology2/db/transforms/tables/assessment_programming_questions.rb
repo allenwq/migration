@@ -14,7 +14,7 @@ def transform_assessment_programming_questions(course_ids = [])
       source_record.assessment_question.max_grade.to_i
     end
     column to: :weight do
-      source_record.assessment_question.question_assessments.first.position
+      source_record.assessment_question.question_assessments.first.position || 0
     end
     column to: :title do
       origin_title = source_record.assessment_question.title

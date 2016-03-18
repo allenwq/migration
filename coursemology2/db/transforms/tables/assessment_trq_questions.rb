@@ -18,7 +18,7 @@ def transform_assessment_trq_questions(course_ids = [])
       source_record.assessment_question.max_grade.to_i
     end
     column to: :weight do
-      source_record.assessment_question.question_assessments.first.position
+      source_record.assessment_question.question_assessments.first.position || 0
     end
     column to: :creator_id do
       CoursemologyV1::Source::User.transform(source_record.assessment_question.creator_id)
