@@ -29,6 +29,4 @@ module CoursemologyV1::Source
       end)
     end
   end
-
-  def_model 'user_courses', 'announcements', 'achievements', 'levels'
 end

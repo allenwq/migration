@@ -4,7 +4,7 @@ module CoursemologyV1::Source
   def_model 'assessment_answers' do
     belongs_to :assessment_question, foreign_key: 'question_id', inverse_of: nil
     belongs_to :assessment_submission, foreign_key: 'submission_id', inverse_of: nil
-    belongs_to :std_course, class_name: UserCourse.name, inverse_of: nil
+    belongs_to :std_course, class_name: 'UserCourse', inverse_of: nil
     has_one :assessment_answer_grading, foreign_key: 'answer_id', inverse_of: nil
   end
 
