@@ -23,6 +23,7 @@ def transform_course_users(course_ids = [])
     column to: :workflow_state do
       'approved'
     end
+    column :last_active_time, to: :last_active_at
     column :updated_at, null: false
     column :created_at, null: false
 

@@ -34,7 +34,7 @@ module CoursemologyV1::Source
       # author id references to UserCourse
       dst_course_user_id = CoursemologyV1::Source::UserCourse.transform(author_id)
       user_id = ::CourseUser.find_by(id: dst_course_user_id).try(:user_id)
-      puts "User not found #{source_record.class} #{source_record.id}" unless user_id
+      puts "User not found ForumTopic #{id}" unless user_id
       user_id
     end
   end

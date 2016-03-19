@@ -4,6 +4,16 @@ module CoursemologyV1::Source
     establish_connection :coursemology_v1
 
     extend DatabaseTransform::SchemaTableRecordMapping
+
+    def primary_key_value
+      if self.class.respond_to?(:primary_keys) && self.class.primary_keys
+        self.class.primary_keys.map { |primary_key| self.send primary_key }.join(',')
+      elsif self.class.respond_to?(:primary_key) && self.class.primary_key
+        self.send self.class.primary_key
+      else
+        self.id
+      end
+    end
   end
 
   # Define models by their table names
