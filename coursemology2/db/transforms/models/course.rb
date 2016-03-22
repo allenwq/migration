@@ -5,11 +5,13 @@ module CoursemologyV1::Source
     has_many :course_navbar_preferences, inverse_of: nil
 
     def training_pref
-      @training_pref ||= course_navbar_preferences.where(item: 'trainings').first
+      @training_pref ||= course_navbar_preferences.where(item: 'trainings').first ||
+        CourseNavbarPreference.new(name: 'Trainings', pos: 2)
     end
 
     def mission_pref
-      @mission_pref ||= course_navbar_preferences.where(item: 'missions').first
+      @mission_pref ||= course_navbar_preferences.where(item: 'missions').first ||
+        CourseNavbarPreference.new(name: 'Missions', pos: 3)
     end
   end
 

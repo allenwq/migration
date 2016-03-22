@@ -3,7 +3,9 @@ def transform_assessment_tabs(course_ids = [])
                          default_scope: proc { where(course_id: Array(course_ids)) } do
     primary_key :id
     column :title
-    column :pos, to: :weight
+    column :pos, to: :weight do |pos|
+      pos || 1
+    end
     column to: :category_id do
       new_course = Course.find(CoursemologyV1::Source::Course.transform(source_record.course_id))
       raise 'Category count invalid' if new_course.assessment_categories.count != 2
