@@ -1,6 +1,6 @@
 module CoursemologyV1::Source
   def_model 'forum_topics' do
-    belongs_to :forum, class_name: ForumForum.name, inverse_of: nil
+    belongs_to :forum, class_name: 'ForumForum', inverse_of: nil
 
     scope :within_courses, ->(course_ids) do
       joins(:forum).where(forum: { course_id: Array(course_ids)})
