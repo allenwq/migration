@@ -1,6 +1,6 @@
 def transform_assessment_programming_answers(course_ids = [])
   transform_table :assessment_coding_answers, to: ::Course::Assessment::Answer::Programming,
-                  default_scope: proc { within_courses(course_ids).with_eager_load } do
+                  default_scope: proc { within_courses(course_ids).with_eager_load.find_each } do
     primary_key :id
     column to: :submission_id do
       CoursemologyV1::Source::AssessmentSubmission.transform(source_record.submission_id)
@@ -53,7 +53,8 @@ def transform_assessment_programming_answers(course_ids = [])
     end
 
     column :content do |content|
-      self.files.build(filename: 'solution.py', content: content) if content
+      # There are strings ends with "\u0000" which result in a postgres error.
+      self.files.build(filename: 'solution.py', content: content.sub("\u0000", '')) if content.present?
     end
 
     skip_saving_unless_valid
