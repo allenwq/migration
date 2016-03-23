@@ -1,3 +1,3 @@
 module CoursemologyV1::Source
-  def_model 'user_courses', 'announcements', 'achievements', 'levels'
+  def_model 'user_courses', 'announcements', 'achievements', 'levels', 'user_achievements'
 end
