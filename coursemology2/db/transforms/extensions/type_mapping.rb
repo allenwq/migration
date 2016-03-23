@@ -3,7 +3,11 @@ TYPE_MAPPING = {
   'Assessment::CodingQuestion' => CoursemologyV1::Source::AssessmentCodingQuestion.name,
   'Assessment::GeneralQuestion' => CoursemologyV1::Source::AssessmentGeneralQuestion.name,
   'Assessment::McqAnswer' => CoursemologyV1::Source::AssessmentMcqAnswer.name,
-  'Assessment::CodingAnswer' => CoursemologyV1::Source::AssessmentCodingAnswer.name
+  'Assessment::CodingAnswer' => CoursemologyV1::Source::AssessmentCodingAnswer.name,
+  'Achievement' => CoursemologyV1::Source::Achievement.name,
+  'Level' => CoursemologyV1::Source::Level.name,
+  'Assessment' => CoursemologyV1::Source::Assessment.name,
+  'AsmReq' => CoursemologyV1::Source::AsmReq.name
 }
 
 module ActiveRecord

@@ -46,7 +46,15 @@ def transform_assessment_skills(course_ids = [])
       CoursemologyV1::Source::Tag.transform(source_record.tag_id)
     end
 
-    skip_saving_unless_valid
+    save validate: false, if: proc {
+      if question_id && skill_id
+        true
+      else
+        puts "Invalid #{source_record.class} #{source_record.primary_key_value}:"\
+        " #{errors.full_messages.to_sentence}"
+        false
+      end
+    }
   end
 end
 
