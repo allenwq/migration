@@ -7,7 +7,8 @@ TYPE_MAPPING = {
   'Achievement' => CoursemologyV1::Source::Achievement.name,
   'Level' => CoursemologyV1::Source::Level.name,
   'Assessment' => CoursemologyV1::Source::Assessment.name,
-  'AsmReq' => CoursemologyV1::Source::AsmReq.name
+  'AsmReq' => CoursemologyV1::Source::AsmReq.name,
+  'Material' => CoursemologyV1::Source::Material.name
 }
 
 module ActiveRecord
