@@ -16,6 +16,7 @@ DatabaseTransform::SchemaTable.class_eval do
     @source.reset_mapping
     run_transform_without_persistence(*args)
     @source.persist_mapping
+    $url_mapper.persist
   end
   alias_method_chain :run_transform, :persistence
 
@@ -44,6 +45,8 @@ DatabaseTransform::SchemaTable.class_eval do
 end
 
 DatabaseTransform::SchemaTableRecordMapping.module_eval do
+  require_relative '../lib/yaml_store'
+
   def transform(old_primary_key)
     mapping[old_primary_key.to_s]
   end
@@ -76,29 +79,5 @@ DatabaseTransform::SchemaTableRecordMapping.module_eval do
 
   def store
     @store ||= YAMLStore.new
-  end
-end
-
-class YAMLStore
-  STORE_PATH = Rails.root.join('tmp/saved_mappings')
-
-  def initialize
-    FileUtils.mkdir(STORE_PATH) unless File.exist?(STORE_PATH)
-  end
-
-  def get(key)
-    path = File.join(STORE_PATH, "#{key}.yaml")
-    if File.exist?(path)
-      YAML.load(File.open(path))
-    else
-      {}
-    end
-  end
-
-  def set(key, data)
-    path = File.join(STORE_PATH, "#{key}.yaml")
-    file = File.open(path, 'w')
-    file.write data.to_yaml
-    file.close
   end
 end

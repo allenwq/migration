@@ -8,12 +8,13 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
   require_relative 'extensions/database_transform'
   require_relative 'extensions/type_mapping'
+  require_relative 'lib/url_hash_mapper'
 
   ActsAsTenant.current_tenant = Instance.default
   User.stamper = User.system
+  $url_mapper = UrlHashMapper.new
 
-  course_ids = [97]
-
+  course_ids = Source::Course.pluck(:id)
   transform_users
   transform_courses(course_ids)
   transform_course_users(course_ids)
@@ -38,4 +39,5 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_assessment_programming_answers(course_ids)
   transform_assessment_skills(course_ids)
   transform_conditions(course_ids)
+  transform_materials(course_ids)
 end
