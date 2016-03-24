@@ -1,6 +1,6 @@
 def transform_assessment_mcq_answers(course_ids = [])
   transform_table :assessment_mcq_answers, to: ::Course::Assessment::Answer::MultipleResponse,
-                  default_scope: proc { within_courses(course_ids).with_eager_load } do
+                  default_scope: proc { within_courses(course_ids).with_eager_load.find_each } do
     primary_key :id
     column to: :submission_id do
       CoursemologyV1::Source::AssessmentSubmission.transform(source_record.submission_id)
@@ -14,14 +14,14 @@ def transform_assessment_mcq_answers(course_ids = [])
     end
 
     column to: :submitted_at do
-      if !self.attempting?
+      if !attempting?
         source_record.updated_at
       else
         nil
       end
     end
     column to: :grade do
-      if self.graded?
+      if graded? || submitted?
         source_record.assessment_answer_grading.try(:grade).to_i
       end
     end
@@ -29,7 +29,7 @@ def transform_assessment_mcq_answers(course_ids = [])
       source_record.correct
     end
     column to: :grader_id do
-      if self.graded?
+      if graded?
         id = nil
         if source_record.assessment_answer_grading
           id = CoursemologyV1::Source::User.transform(source_record.assessment_answer_grading.grader_id)
@@ -38,7 +38,7 @@ def transform_assessment_mcq_answers(course_ids = [])
       end
     end
     column to: :graded_at do
-      if self.graded?
+      if graded?
         if source_record.assessment_answer_grading
           source_record.assessment_answer_grading.created_at
         else

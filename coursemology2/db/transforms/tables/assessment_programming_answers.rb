@@ -15,7 +15,7 @@ def transform_assessment_programming_answers(course_ids = [])
     end
 
     column to: :submitted_at do
-      if !self.attempting?
+      if !attempting?
         source_record.updated_at
       else
         nil
@@ -23,7 +23,7 @@ def transform_assessment_programming_answers(course_ids = [])
     end
 
     column to: :grade do
-      if self.graded?
+      if graded? || submitted?
         source_record.assessment_answer_grading.try(:grade).to_i
       end
     end
@@ -33,7 +33,7 @@ def transform_assessment_programming_answers(course_ids = [])
     end
 
     column to: :grader_id do
-      if self.graded?
+      if graded?
         id = nil
         if source_record.assessment_answer_grading
           id = CoursemologyV1::Source::User.transform(source_record.assessment_answer_grading.grader_id)
@@ -43,7 +43,7 @@ def transform_assessment_programming_answers(course_ids = [])
     end
 
     column to: :graded_at do
-      if self.graded?
+      if graded?
         if source_record.assessment_answer_grading
           source_record.assessment_answer_grading.created_at
         else
