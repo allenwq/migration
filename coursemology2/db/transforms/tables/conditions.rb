@@ -40,8 +40,6 @@ def transform_conditions(course_ids = [])
       # Only require to finish the dependent one.
       0.0
     end
-    column :updated_at
-    column :created_at
 
     skip_saving_unless_valid
   end
