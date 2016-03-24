@@ -1,6 +1,6 @@
 def transform_assessment_trq_answers(course_ids = [])
   transform_table :assessment_general_answers, to: ::Course::Assessment::Answer::TextResponse,
-                  default_scope: proc { within_courses(course_ids).with_eager_load } do
+                  default_scope: proc { within_courses(course_ids).with_eager_load.find_each } do
     primary_key :id
     column to: :submission_id do
       CoursemologyV1::Source::AssessmentSubmission.transform(source_record.submission_id)

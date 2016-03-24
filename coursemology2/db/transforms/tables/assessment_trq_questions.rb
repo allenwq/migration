@@ -1,7 +1,7 @@
 def transform_assessment_trq_questions(course_ids = [])
   transform_table :assessment_general_questions,
                   to: ::Course::Assessment::Question::TextResponse,
-                  default_scope: proc { within_courses(course_ids) } do
+                  default_scope: proc { within_courses(course_ids).find_each } do
     primary_key :id
     column to: :assessment_id do
       original_assessment_id = source_record.assessment_question.assessments.first.id

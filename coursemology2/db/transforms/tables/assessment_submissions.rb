@@ -1,7 +1,7 @@
 def transform_assessment_submissions(course_ids = [])
   transform_table :assessment_submissions,
                   to: ::Course::Assessment::Submission,
-                  default_scope: proc { includes(:std_course).within_courses(course_ids) } do
+                  default_scope: proc { includes(:std_course).within_courses(course_ids).find_each } do
     primary_key :id
     column :std_course_id, to: :course_user_id do |std_course_id|
       CoursemologyV1::Source::UserCourse.transform(std_course_id)

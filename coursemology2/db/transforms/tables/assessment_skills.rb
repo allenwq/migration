@@ -35,7 +35,7 @@ def transform_assessment_skills(course_ids = [])
   end
 
   transform_table :taggable_tags, to: :course_assessment_questions_skills,
-                  default_scope: proc { within_courses(course_ids) } do
+                  default_scope: proc { within_courses(course_ids).find_each } do
     primary_key :id
     column to: :question_id do
       if source_record.taggable_type == 'Assessment::Question'

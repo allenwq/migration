@@ -1,6 +1,6 @@
 def transform_course_user_achievements(course_ids = [])
   transform_table :user_achievements, to: ::Course::UserAchievement,
-                  default_scope: proc { within_courses(course_ids) } do
+                  default_scope: proc { within_courses(course_ids).find_each } do
     primary_key :id
     column to: :course_user_id do
       CoursemologyV1::Source::UserCourse.transform(source_record.user_course_id)

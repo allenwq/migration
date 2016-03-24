@@ -1,6 +1,6 @@
 def transform_course_users(course_ids = [])
   transform_table :user_courses, to: ::CourseUser,
-                                 default_scope: proc { where(course_id: Array(course_ids)) } do
+                                 default_scope: proc { within_courses(course_ids).find_each } do
     primary_key :id
     column :user_id, to: :user_id do |user_id|
       CoursemologyV1::Source::User.transform(user_id)
