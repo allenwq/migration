@@ -6,6 +6,7 @@ Add this line to the application's Gemfile:
 
 ```ruby
 gem 'database_transform'
+gem 'mysql2'
 ```
 
 Add a new connection to the old database in `database.yml`.
@@ -25,6 +26,5 @@ $ rake db:transform[coursemology_v1]
 
 ## Known Issues
 - Auto graded coding questions does not work, unless manually upload a new package contains the programming files and test cases.
-- [mc]/[c] tags are not hanlded currently.
 - S3 URLS in models are not parsed (V1 directly uploads things to S3 and put the raw url in the html description, this however need to be tracked in V2).
 - Some columns/tables which does not implementated in V2 are droped (Like scribing questions and forum post votes).
