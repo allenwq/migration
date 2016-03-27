@@ -1,6 +1,3 @@
-require 'objspace'
-ObjectSpace.trace_object_allocations_start
-
 class CoursemologyV1 < DatabaseTransform::Schema
   Dir[File.dirname(__FILE__) + '/tables/*.rb'].each {|file| require file }
   require_relative 'models/base'

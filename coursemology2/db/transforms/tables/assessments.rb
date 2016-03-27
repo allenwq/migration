@@ -35,6 +35,13 @@ def transform_assessments(course_ids = [])
     column :creator_id, to: :creator_id do |creator_id|
       CoursemologyV1::Source::User.transform(creator_id)
     end
+
+    column :file_uploads do |file_uploads|
+      file_uploads.visible.each do |file|
+        attachment = file.transform_attachment_reference
+        folder.materials.build(attachment_reference: attachment, name: attachment.name)
+      end
+    end
     column :updated_at, null: false
     column :created_at, null: false
 
