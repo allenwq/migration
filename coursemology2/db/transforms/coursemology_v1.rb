@@ -20,6 +20,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_course_user_achievements(course_ids)
   transform_announcements(course_ids)
   transform_levels(course_ids)
+  transform_manual_exp(course_ids)
   transform_lesson_plans(course_ids)
   transform_forums(course_ids)
   transform_forum_topics(course_ids)
