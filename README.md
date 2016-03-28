@@ -1,5 +1,5 @@
 # Coursemogy Migration
-Migration script from Coursemology v1 to v2, still workign in progress.
+Migration script from Coursemology v1 to v2.
 
 ## Usage
 Add this line to the application's Gemfile:
