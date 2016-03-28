@@ -6,7 +6,9 @@ def transform_achievements(course_ids = [])
       CoursemologyV1::Source::Course.transform(source_record.course_id)
     end
     column :title
-    column :description
+    column to: :description do
+      ContentParser.parse_mc_tags(source_record.description)
+    end
     # column :badge
     column :published, to: :draft do |published|
       !published

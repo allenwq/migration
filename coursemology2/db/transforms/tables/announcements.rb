@@ -10,7 +10,9 @@ def transform_announcements(course_ids = [])
       # example: http://coursemology.org/courses/193/announcements
       title.present? ? title : '( No Title )'
     end
-    column :description, to: :content
+    column :description, to: :content do |description|
+      ContentParser.parse_mc_tags(description)
+    end
     column :publish_at, to: :start_at
     column :expiry_at, to: :end_at do |expiry_at|
       expiry_at || Time.now

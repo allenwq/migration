@@ -10,7 +10,7 @@ def transform_assessment_mcq_questions(course_ids = [])
       source_record.assessment_question.title || '( No Title )'
     end
     column to: :description do
-      source_record.assessment_question.description
+      ContentParser.parse_mc_tags(source_record.assessment_question.description)
     end
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i

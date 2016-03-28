@@ -12,7 +12,7 @@ def transform_assessment_trq_questions(course_ids = [])
       origin_title.present? ? origin_title : '( No Title )'
     end
     column to: :description do
-      source_record.assessment_question.description
+      ContentParser.parse_mc_tags(source_record.assessment_question.description)
     end
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i

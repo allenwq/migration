@@ -6,6 +6,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
   require_relative 'extensions/database_transform'
   require_relative 'extensions/type_mapping'
   require_relative 'lib/url_hash_mapper'
+  require_relative 'lib/content_parser'
 
   ActsAsTenant.current_tenant = Instance.default
   User.stamper = User.system

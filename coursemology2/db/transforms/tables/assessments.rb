@@ -6,7 +6,9 @@ def transform_assessments(course_ids = [])
       CoursemologyV1::Source::Course.transform(old_course_id)
     end
     column :title
-    column :description
+    column to: :description do
+      ContentParser.parse_mc_tags(source_record.description)
+    end
     column :exp, to: :base_exp do |exp|
       exp || 0
     end

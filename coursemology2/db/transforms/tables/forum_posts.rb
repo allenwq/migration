@@ -14,7 +14,9 @@ def transform_forum_posts(course_ids = [])
       CoursemologyV1::Source::ForumTopic.transform(source_record.topic_id)
     end
     column :title
-    column :text
+    column to: :text do
+      ContentParser.parse_mc_tags(source_record.text)
+    end
     # TODO: creator_id is overwrite by User.system
     column to: :creator_id do
       source_record.transform_creator_id

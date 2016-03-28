@@ -6,7 +6,9 @@ def transform_assessment_mcq_options(course_ids = [])
     column :question_id, to: :question_id do |question_id|
       CoursemologyV1::Source::AssessmentMcqQuestion.transform(question_id)
     end
-    column :text, to: :option
+    column to: :option do
+      ContentParser.parse_mc_tags(source_record.text)
+    end
     column :correct
     column :explanation
 
