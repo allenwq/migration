@@ -12,7 +12,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
   User.stamper = User.system
   $url_mapper = UrlHashMapper.new
 
-  course_ids = Source::Course.pluck(:id)
+  course_ids = 362
   transform_users
   transform_courses(course_ids)
   transform_course_users(course_ids)
