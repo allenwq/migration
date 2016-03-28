@@ -51,7 +51,7 @@ def transform_assessment_skills(course_ids = [])
         true
       else
         puts "Invalid #{source_record.class} #{source_record.primary_key_value}:"\
-        " #{errors.full_messages.to_sentence}"
+        " question_id: #{question_id}, skill_id: #{skill_id}"
         false
       end
     }
