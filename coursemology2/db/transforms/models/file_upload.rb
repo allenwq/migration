@@ -7,6 +7,7 @@ module CoursemologyV1::Source
 
     belongs_to :owner, polymorphic: true
 
+    # Return the attachment reference or nil
     def transform_attachment_reference
       hash = $url_mapper.get_hash(url)
       if hash && attachment = ::Attachment.find_by(name: hash)
@@ -14,8 +15,8 @@ module CoursemologyV1::Source
           attachment: attachment,
           name: sanitized_name
         )
-      else
-        reference = ::AttachmentReference.new(file: download_to_local)
+      elsif local_file = download_to_local
+        reference = ::AttachmentReference.new(file: local_file)
         reference.name = sanitized_name
         $url_mapper.set(url, reference.attachment.name, reference.url)
         reference
@@ -23,16 +24,27 @@ module CoursemologyV1::Source
     end
 
     def url
-      URL_PREFIX + id_partition + '/original/' + file_file_name
+      if copy_url
+        copy_url
+      else
+        URL_PREFIX + id_partition + '/original/' + file_file_name
+      end
     end
 
     def download_to_local
       FileUtils.mkdir_p(LOCAL_DIR) unless File.exist?(LOCAL_DIR)
       local_file_path = File.join(LOCAL_DIR, id.to_s + '_' + file_file_name)
       local_file = File.open(local_file_path, 'wb')
-      open(url, 'rb') do |read_file|
-        local_file.write(read_file.read)
+      begin
+        open(url, 'rb') do |read_file|
+          local_file.write(read_file.read)
+        end
+      rescue OpenURI::HTTPError => e
+        puts "Download #{inspect} error: #{e.inspect}"
+        local_file.close
+        local_file = nil
       end
+
       local_file
     end
 

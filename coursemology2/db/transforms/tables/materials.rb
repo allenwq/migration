@@ -52,7 +52,9 @@ def transform_materials(course_ids = [])
       source_record.transform_name
     end
     column to: :attachment_reference do
-      source_record.file_upload.transform_attachment_reference
+      attachment = source_record.file_upload.transform_attachment_reference
+      self.name = nil if !attachment # Make it invalid so it won't be saved
+      attachment
     end
     column :description
     # TODO: creator is overwrote
