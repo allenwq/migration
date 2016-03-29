@@ -3,7 +3,6 @@ module CoursemologyV1::Source
     scope :visible, ->() { where(is_public: true) }
     require 'open-uri'
     URL_PREFIX = 'http://coursemology.s3.amazonaws.com/file_uploads/files/'
-    LOCAL_DIR = '/tmp/file_uploads'
 
     belongs_to :owner, polymorphic: true
 
@@ -32,26 +31,7 @@ module CoursemologyV1::Source
     end
 
     def download_to_local
-      FileUtils.mkdir_p(LOCAL_DIR) unless File.exist?(LOCAL_DIR)
-      local_file_path = File.join(LOCAL_DIR, id.to_s + '_' + file_file_name)
-      local_file = File.open(local_file_path, 'wb')
-      tries = 10
-      begin
-        open(url, 'rb') do |read_file|
-          local_file.write(read_file.read)
-        end
-      rescue StandardError => e
-        tries -= 1
-        if tries > 0
-          retry
-        else
-          puts "Download FileUpload #{id} failed, error: #{e.inspect}"
-          local_file.close
-          local_file = nil
-        end
-      end
-
-      local_file
+      Downloader.download_to_local(url, self, file_file_name)
     end
 
     private

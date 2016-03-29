@@ -13,6 +13,12 @@ module CoursemologyV1::Source
       @mission_pref ||= course_navbar_preferences.where(item: 'missions').first ||
         CourseNavbarPreference.new(name: 'Missions', pos: 3)
     end
+
+    def transform_logo
+      if logo_url.present?
+        Downloader.download_to_local(logo_url, self)
+      end
+    end
   end
 
   # Don't enroll creator in the course

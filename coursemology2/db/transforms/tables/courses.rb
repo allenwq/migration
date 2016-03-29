@@ -8,7 +8,13 @@ def transform_courses(ids = [])
     end
     column :title
     column :description
-    # column :logo
+    column :logo_url do
+      logo_file = source_record.transform_logo
+      if logo_file
+        self.logo = logo_file
+        logo_file.close unless logo_file.closed?
+      end
+    end
     column :is_publish do
       # enum status: { closed: 0, published: 1, opened: 2 }
       if source_record.is_publish?

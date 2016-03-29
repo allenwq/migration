@@ -1,5 +1,3 @@
-require_relative 'yaml_store'
-
 class UrlHashMapper
   # { v1_url: [ hash, v2_url ] }
   def initialize

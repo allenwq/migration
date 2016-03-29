@@ -9,7 +9,13 @@ def transform_achievements(course_ids = [])
     column to: :description do
       ContentParser.parse_mc_tags(source_record.description)
     end
-    # column :badge
+    column :icon_url do
+      badge_file = source_record.transform_badge
+      if badge_file
+        self.badge = badge_file
+        badge_file.close unless badge_file.closed?
+      end
+    end
     column :published, to: :draft do |published|
       !published
     end

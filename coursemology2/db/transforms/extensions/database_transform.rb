@@ -45,8 +45,6 @@ DatabaseTransform::SchemaTable.class_eval do
 end
 
 DatabaseTransform::SchemaTableRecordMapping.module_eval do
-  require_relative '../lib/yaml_store'
-
   def transform(old_primary_key)
     mapping[old_primary_key.to_s]
   end

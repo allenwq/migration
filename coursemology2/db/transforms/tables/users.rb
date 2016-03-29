@@ -10,6 +10,13 @@ def transform_users
         skip_confirmation_notification!
       end
     end
+    # column :profile_photo_url do
+    #   photo_file = source_record.transform_profile_photo
+    #   if photo_file
+    #     self.profile_photo = photo_file
+    #     photo_file.close unless photo_file.closed?
+    #   end
+    # end
     column :encrypted_password
     column :sign_in_count
     column :current_sign_in_at

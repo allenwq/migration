@@ -2,11 +2,8 @@ class CoursemologyV1 < DatabaseTransform::Schema
   Dir[File.dirname(__FILE__) + '/tables/*.rb'].each {|file| require file }
   require_relative 'models/base'
   Dir[File.dirname(__FILE__) + '/models/*.rb'].each {|file| require file }
-
-  require_relative 'extensions/database_transform'
-  require_relative 'extensions/type_mapping'
-  require_relative 'lib/url_hash_mapper'
-  require_relative 'lib/content_parser'
+  Dir[File.dirname(__FILE__) + '/lib/*.rb'].each { |file| require file }
+  Dir[File.dirname(__FILE__) + '/extensions/*.rb'].each { |file| require file }
 
   ActsAsTenant.current_tenant = Instance.default
   User.stamper = User.system
