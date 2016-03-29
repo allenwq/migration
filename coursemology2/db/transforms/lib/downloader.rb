@@ -38,6 +38,7 @@ class Downloader
       File.join(LOCAL_DIR, object.class.table_name, object.primary_key_value.to_s)
     end
 
+    # Url is must be a S3 url
     def name_from_url(url)
       return '' unless url.present?
       start = url.index('original/') + 'original/'.length
