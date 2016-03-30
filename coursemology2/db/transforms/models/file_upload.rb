@@ -9,17 +9,22 @@ module CoursemologyV1::Source
     # Return the attachment reference or nil
     def transform_attachment_reference
       hash = $url_mapper.get_hash(url)
+      reference = nil
       if hash && attachment = ::Attachment.find_by(name: hash)
-        ::AttachmentReference.new(
-          attachment: attachment,
-          name: sanitized_name
-        )
+        reference = ::AttachmentReference.new(
+                      attachment: attachment,
+                      name: sanitized_name
+                    )
       elsif local_file = download_to_local
-        reference = ::AttachmentReference.new(file: local_file)
+        attachment = ::Attachment.find_or_initialize_by(file: local_file)
+        attachment.save!
+        local_file.close unless local_file.closed?
+        reference = ::AttachmentReference.new(attachment: attachment)
         reference.name = sanitized_name
         $url_mapper.set(url, reference.attachment.name, reference.url)
-        reference
       end
+
+      reference
     end
 
     def url
