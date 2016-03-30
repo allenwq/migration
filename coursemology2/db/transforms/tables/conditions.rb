@@ -1,24 +1,24 @@
 def transform_conditions(course_ids = [])
-  # transform_table :requirements, to: ::Course::Condition,
-  #                 default_scope: proc { within_courses(course_ids) } do
-  #   primary_key :id
-  #   column to: :conditional do
-  #     dst_id = CoursemologyV1::Source::Achievement.transform(source_record.obj_id)
-  #     ::Course::Achievement.find_by(id: dst_id)
-  #   end
-  #   column to: :course_id do
-  #     conditional.course_id if conditional
-  #   end
-  #   column to: :actable do
-  #     actable = source_record.transform_actable
-  #     actable.condition = self
-  #     actable
-  #   end
-  #   column :updated_at
-  #   column :created_at
-  #
-  #   skip_saving_unless_valid
-  # end
+  transform_table :requirements, to: ::Course::Condition,
+                  default_scope: proc { within_courses(course_ids) } do
+    primary_key :id
+    column to: :conditional do
+      dst_id = CoursemologyV1::Source::Achievement.transform(source_record.obj_id)
+      ::Course::Achievement.find_by(id: dst_id)
+    end
+    column to: :course_id do
+      conditional.course_id if conditional
+    end
+    column to: :actable do
+      actable = source_record.transform_actable
+      actable.condition = self
+      actable
+    end
+    column :updated_at
+    column :created_at
+
+    skip_saving_unless_valid
+  end
 
   transform_table :assessment_dependency, to: ::Course::Condition::Assessment,
                   default_scope: proc { within_courses(course_ids) } do
