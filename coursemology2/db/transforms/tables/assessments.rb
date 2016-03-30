@@ -1,6 +1,7 @@
 def transform_assessments(course_ids = [])
-  transform_table :assessments, to: ::Course::Assessment,
-                                default_scope: proc { within_courses(course_ids).find_each } do
+  transform_table :assessments,
+                  to: ::Course::Assessment,
+                  default_scope: proc { within_courses(course_ids).find_each } do
     primary_key :id
     column :course_id, to: :course_id, null: false do |old_course_id|
       CoursemologyV1::Source::Course.transform(old_course_id)

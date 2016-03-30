@@ -10,6 +10,7 @@ def transform_users
         skip_confirmation_notification!
       end
     end
+    # TODO: Improve performance for user profile photos.
     # column :profile_photo_url do
     #   photo_file = source_record.transform_profile_photo
     #   if photo_file

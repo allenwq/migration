@@ -1,6 +1,7 @@
 def transform_levels(course_ids = [])
-  transform_table :levels, to: ::Course::Level,
-                  default_scope: proc { where(course_id: Array(course_ids)) } do
+  transform_table :levels,
+                  to: ::Course::Level,
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column :course_id, to: :course_id do |course_id|
       CoursemologyV1::Source::Course.transform(course_id)

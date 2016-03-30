@@ -1,5 +1,6 @@
 def transform_announcements(course_ids = [])
-  transform_table :announcements, to: ::Course::Announcement,
+  transform_table :announcements,
+                  to: ::Course::Announcement,
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do

@@ -1,5 +1,6 @@
 def transform_achievements(course_ids = [])
-  transform_table :achievements, to: ::Course::Achievement,
+  transform_table :achievements,
+                  to: ::Course::Achievement,
                   default_scope: proc { within_courses(course_ids).find_each } do
     primary_key :id
     column to: :course_id do

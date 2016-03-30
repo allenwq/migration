@@ -1,5 +1,6 @@
 def transform_materials(course_ids = [])
-  transform_table :material_folders, to: ::Course::Material::Folder,
+  transform_table :material_folders,
+                  to: ::Course::Material::Folder,
                   default_scope: proc { within_courses(course_ids).tsort } do
     primary_key :id
     column to: :parent_id do
@@ -42,7 +43,8 @@ def transform_materials(course_ids = [])
     }
   end
 
-  transform_table :materials, to: ::Course::Material,
+  transform_table :materials,
+                  to: ::Course::Material,
                   default_scope: proc { within_courses(course_ids).find_each } do
     primary_key :id
     column to: :folder_id do

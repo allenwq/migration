@@ -1,5 +1,6 @@
 def transform_forum_posts(course_ids = [])
-  transform_table :forum_posts, to: ::Course::Discussion::Post,
+  transform_table :forum_posts,
+                  to: ::Course::Discussion::Post,
                   default_scope: proc { within_courses(course_ids).tsort } do
     primary_key :id
     column to: :parent_id do

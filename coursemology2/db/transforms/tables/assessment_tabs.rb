@@ -1,6 +1,7 @@
 def transform_assessment_tabs(course_ids = [])
-  transform_table :tabs, to: ::Course::Assessment::Tab,
-                         default_scope: proc { where(course_id: Array(course_ids)) } do
+  transform_table :tabs,
+                  to: ::Course::Assessment::Tab,
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column :title
     column :pos, to: :weight do |pos|

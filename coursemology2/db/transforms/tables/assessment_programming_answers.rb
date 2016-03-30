@@ -1,5 +1,6 @@
 def transform_assessment_programming_answers(course_ids = [])
-  transform_table :assessment_coding_answers, to: ::Course::Assessment::Answer::Programming,
+  transform_table :assessment_coding_answers,
+                  to: ::Course::Assessment::Answer::Programming,
                   default_scope: proc { within_courses(course_ids).with_eager_load.find_each } do
     primary_key :id
     column to: :submission_id do

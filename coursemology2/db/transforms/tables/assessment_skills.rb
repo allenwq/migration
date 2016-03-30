@@ -1,6 +1,7 @@
 def transform_assessment_skills(course_ids = [])
-  transform_table :tag_groups, to: ::Course::Assessment::SkillBranch,
-                  default_scope: proc { where(course_id: Array(course_ids)) } do
+  transform_table :tag_groups,
+                  to: ::Course::Assessment::SkillBranch,
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
       CoursemologyV1::Source::Course.transform(source_record.course_id)
@@ -15,8 +16,9 @@ def transform_assessment_skills(course_ids = [])
     skip_saving_unless_valid
   end
 
-  transform_table :tags, to: ::Course::Assessment::Skill,
-                  default_scope: proc { where(course_id: Array(course_ids)) } do
+  transform_table :tags,
+                  to: ::Course::Assessment::Skill,
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
       CoursemologyV1::Source::Course.transform(source_record.course_id)

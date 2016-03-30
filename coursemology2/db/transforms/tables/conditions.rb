@@ -1,5 +1,6 @@
 def transform_conditions(course_ids = [])
-  transform_table :requirements, to: ::Course::Condition,
+  transform_table :requirements,
+                  to: ::Course::Condition,
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :conditional do
@@ -20,7 +21,8 @@ def transform_conditions(course_ids = [])
     skip_saving_unless_valid
   end
 
-  transform_table :assessment_dependency, to: ::Course::Condition::Assessment,
+  transform_table :assessment_dependency,
+                  to: ::Course::Condition::Assessment,
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :conditional_type do
