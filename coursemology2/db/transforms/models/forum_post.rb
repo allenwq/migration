@@ -33,4 +33,13 @@ module CoursemologyV1::Source
       user_id
     end
   end
+
+  def_model 'votes' do
+    scope :within_courses, ->(course_ids) do
+      joins("INNER JOIN forum_posts ON forum_posts.id = votes.votable_id AND votes.votable_type = 'ForumPost'").
+        joins('INNER JOIN forum_topics ON forum_posts.topic_id = forum_topics.id').
+        joins('INNER JOIN forum_forums ON forum_forums.id = forum_topics.forum_id').
+        where("forum_forums.course_id IN (#{Array(course_ids).join(' ')})")
+    end
+  end
 end

@@ -22,6 +22,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_forums(course_ids)
   transform_forum_topics(course_ids)
   transform_forum_posts(course_ids)
+  transform_forum_post_votes(course_ids)
   transform_assessment_tabs(course_ids)
   transform_assessments(course_ids)
   transform_assessment_mcq_questions(course_ids)
