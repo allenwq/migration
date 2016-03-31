@@ -2,7 +2,7 @@ module CoursemologyV1::Source
   def_model 'assessment_general_answers' do
     has_one :assessment_answer, as: :as_answer, inverse_of: nil
     delegate :submission_id, :question_id, :std_course_id, :content, :finalised, :correct,
-             :assessment_answer_grading, to: :assessment_answer
+             :assessment_answer_grading, :assessment_submission, to: :assessment_answer
 
     scope :with_eager_load, ->() do
       includes({ assessment_answer: [:assessment_question, :assessment_answer_grading]})

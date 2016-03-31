@@ -35,6 +35,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_assessment_trq_answers(course_ids)
   transform_assessment_programming_answers(course_ids)
   transform_assessment_skills(course_ids)
+  transform_assessment_comments(course_ids)
   transform_conditions(course_ids)
   transform_materials(course_ids)
 end
