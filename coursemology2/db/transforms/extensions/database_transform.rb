@@ -31,9 +31,12 @@ DatabaseTransform::SchemaTable.class_eval do
 
   # Helper method.
   # Skip the invalid record and log errors.
-  def skip_saving_unless_valid
+  def skip_saving_unless_valid(&block)
     save validate: false, if: proc {
-      if valid?
+      # Use block for validation if given
+      if block_given? && instance_exec(&block)
+         true
+      elsif !block_given? && valid?
         true
       else
         puts "Invalid #{source_record.class} #{source_record.primary_key_value}:"\
