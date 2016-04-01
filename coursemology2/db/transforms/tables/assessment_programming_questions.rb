@@ -37,7 +37,9 @@ def transform_assessment_programming_questions(course_ids = [])
       source_record.time_limit || 0
     end
     column to: :creator_id do
-      CoursemologyV1::Source::User.transform(source_record.assessment_question.creator_id)
+      result = CoursemologyV1::Source::User.transform(source_record.assessment_question.creator_id)
+      self.updater_id = result
+      result
     end
     column :updated_at
     column :created_at

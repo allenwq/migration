@@ -9,7 +9,11 @@ def transform_lesson_plans(course_ids = [])
     column :title
     column :description
     column :start_at
-    column :creator_id
+    column to: :creator_id do
+      result = CoursemologyV1::Source::User.transform(source_record.creator_id)
+      self.updater_id = result
+      result
+    end
 
     skip_saving_unless_valid
   end
@@ -32,7 +36,11 @@ def transform_lesson_plans(course_ids = [])
     column to: :draft do
       false
     end
-    column :creator_id
+    column to: :creator_id do
+      result = CoursemologyV1::Source::User.transform(source_record.creator_id)
+      self.updater_id = result
+      result
+    end
 
     skip_saving_unless_valid
   end

@@ -7,18 +7,23 @@ def transform_forum_post_votes(course_ids = [])
       CoursemologyV1::Source::ForumPost.transform(source_record.votable_id)
     end
     column :vote_flag
-    # TODO: creator_id is overwrite by User.system
     column to: :creator_id do
-      CoursemologyV1::Source::User.transform(source_record.voter_id)
+      result = CoursemologyV1::Source::User.transform(source_record.voter_id)
+      self.updater_id = result
+      result
     end
-    column to: :updater_id do
-      CoursemologyV1::Source::User.transform(source_record.voter_id)
-    end
-    # TODO: timestamps are wrong
     column :created_at
     column :updated_at
 
-    skip_saving_unless_valid
+    skip_saving_unless_valid do
+      # Drop those records without creator
+      if creator_id.present?
+        valid?
+      else
+        errors.add(:creator, :blank)
+        false
+      end
+    end
   end
 end
 

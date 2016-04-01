@@ -19,7 +19,9 @@ def transform_announcements(course_ids = [])
       expiry_at || Time.now
     end
     column to: :creator_id do
-      CoursemologyV1::Source::User.transform(source_record.creator_id)
+      result = CoursemologyV1::Source::User.transform(source_record.creator_id)
+      self.updater_id = result
+      result
     end
     column :updated_at
     column :created_at

@@ -11,7 +11,9 @@ def transform_manual_exp(course_ids = [])
       CoursemologyV1::Source::UserCourse.transform(source_record.user_course_id)
     end
     column to: :creator_id do
-      CoursemologyV1::Source::Course.transform(source_record.giver_id)
+      result = CoursemologyV1::Source::Course.transform(source_record.giver_id)
+      self.updater_id = result
+      result
     end
     column to: :updater_id do
       CoursemologyV1::Source::Course.transform(source_record.giver_id)

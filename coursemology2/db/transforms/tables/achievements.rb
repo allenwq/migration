@@ -24,7 +24,9 @@ def transform_achievements(course_ids = [])
       position || 0
     end
     column to: :creator_id do
-      CoursemologyV1::Source::User.transform(source_record.creator_id)
+      result = CoursemologyV1::Source::User.transform(source_record.creator_id)
+      self.updater_id = result
+      result
     end
     column :updated_at
     column :created_at

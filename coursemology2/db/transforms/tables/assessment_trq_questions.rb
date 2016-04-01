@@ -21,7 +21,9 @@ def transform_assessment_trq_questions(course_ids = [])
       source_record.assessment_question.question_assessments.first.position || 0
     end
     column to: :creator_id do
-      CoursemologyV1::Source::User.transform(source_record.assessment_question.creator_id)
+      result = CoursemologyV1::Source::User.transform(source_record.assessment_question.creator_id)
+      self.updater_id = result
+      result
     end
     column :updated_at
     column :created_at

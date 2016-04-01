@@ -28,7 +28,9 @@ def transform_assessment_submissions(course_ids = [])
       source_record.exp_awarded
     end
     column to: :creator_id do
-      CoursemologyV1::Source::User.transform(source_record.std_course.user_id)
+      result = CoursemologyV1::Source::User.transform(source_record.std_course.user_id)
+      self.updater_id = result
+      result
     end
     column :updated_at
     column :created_at

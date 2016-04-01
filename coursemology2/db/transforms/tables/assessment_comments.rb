@@ -12,15 +12,23 @@ def transform_assessment_comments(course_ids = [])
     column to: :text do
       ContentParser.parse_mc_tags(source_record.text)
     end
-    # TODO: creator_id is overwrite by User.system
     column to: :creator_id do
-      source_record.transform_creator_id
+      result = source_record.transform_creator_id
+      self.updater_id = result
+      result
     end
-    # TODO: timestamps are wrong
     column :created_at
     column :updated_at
 
-    skip_saving_unless_valid
+    skip_saving_unless_valid do
+      # Drop those records without creator
+      if creator_id.present?
+        valid?
+      else
+        errors.add(:creator, :blank)
+        false
+      end
+    end
   end
 
   transform_table :annotations,
@@ -40,15 +48,23 @@ def transform_assessment_comments(course_ids = [])
     column to: :text do
       ContentParser.parse_mc_tags(source_record.text)
     end
-    # TODO: creator_id is overwrite by User.system
     column to: :creator_id do
-      source_record.transform_creator_id
+      result = source_record.transform_creator_id
+      self.updater_id = result
+      result
     end
-    # TODO: timestamps are wrong
     column :created_at
     column :updated_at
 
-    skip_saving_unless_valid
+    skip_saving_unless_valid do
+      # Drop those records without creator
+      if creator_id.present?
+        valid?
+      else
+        errors.add(:creator, :blank)
+        false
+      end
+    end
   end
 end
 

@@ -36,7 +36,9 @@ def transform_assessments(course_ids = [])
       assessment_infer_new_tab_id(source_record, self)
     end
     column :creator_id, to: :creator_id do |creator_id|
-      CoursemologyV1::Source::User.transform(creator_id)
+      result = CoursemologyV1::Source::User.transform(creator_id)
+      self.updater_id = result
+      result
     end
 
     column :file_uploads do |file_uploads|

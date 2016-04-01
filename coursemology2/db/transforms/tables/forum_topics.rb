@@ -13,9 +13,10 @@ def transform_forum_topics(course_ids = [])
       source_record.transform_topic_type
     end
     column to: :creator_id do
-      source_record.transform_creator_id
+      result = source_record.transform_creator_id
+      self.updater_id = result
+      result
     end
-    # TODO: timestamps are wrong
     column :created_at
     column :updated_at
 
