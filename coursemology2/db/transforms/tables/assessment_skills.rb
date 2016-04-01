@@ -28,7 +28,7 @@ def transform_assessment_skills(course_ids = [])
     end
     column :name, to: :title
     column :description, to: :description do |description|
-      description.present? ? description : '( no description )'
+      description.present? ? description : '( No Description )'
     end
     column :updated_at
     column :created_at
