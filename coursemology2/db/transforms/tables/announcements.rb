@@ -12,7 +12,10 @@ def transform_announcements(course_ids = [])
       title.present? ? title : '( No Title )'
     end
     column :description, to: :content do |description|
-      ContentParser.parse_mc_tags(description)
+      description = ContentParser.parse_mc_tags(description)
+      description, references = ContentParser.parse_images(source_record, description)
+      self.attachment_references = references if references.any?
+      description
     end
     column :publish_at, to: :start_at
     column :expiry_at, to: :end_at do |expiry_at|

@@ -8,7 +8,10 @@ def transform_assessments(course_ids = [])
     end
     column :title
     column to: :description do
-      ContentParser.parse_mc_tags(source_record.description)
+      description = ContentParser.parse_mc_tags(source_record.description)
+      description, references = ContentParser.parse_images(source_record, description)
+      self.attachment_references = references if references.any?
+      description
     end
     column :exp, to: :base_exp do |exp|
       exp || 0

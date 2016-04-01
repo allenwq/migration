@@ -32,6 +32,29 @@ class Downloader
       local_file
     end
 
+    # @param [Proc] download_proc, the proc which downloads the file, if url is not found in
+    #   cache, file will be downloaded.
+    def url_to_attachment_reference(url, download_proc, name = nil)
+      name ||= name_from_url(url)
+      hash = $url_mapper.get_hash(url)
+      reference = nil
+      if hash && attachment = ::Attachment.find_by(name: hash)
+        reference = ::AttachmentReference.new(
+          attachment: attachment,
+          name: name
+        )
+      elsif local_file = download_proc.call
+        attachment = ::Attachment.find_or_initialize_by(file: local_file)
+        attachment.save!
+        local_file.close unless local_file.closed?
+        reference = ::AttachmentReference.new(attachment: attachment)
+        reference.name = name
+        $url_mapper.set(url, reference.attachment.name, reference.url)
+      end
+
+      reference
+    end
+
     private
 
     def download_dir(object)

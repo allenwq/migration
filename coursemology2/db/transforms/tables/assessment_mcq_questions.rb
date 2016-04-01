@@ -11,7 +11,10 @@ def transform_assessment_mcq_questions(course_ids = [])
       source_record.assessment_question.title || '( No Title )'
     end
     column to: :description do
-      ContentParser.parse_mc_tags(source_record.assessment_question.description)
+      description = ContentParser.parse_mc_tags(source_record.assessment_question.description)
+      description, references = ContentParser.parse_images(source_record, description)
+      self.question.attachment_references = references if references.any?
+      description
     end
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i

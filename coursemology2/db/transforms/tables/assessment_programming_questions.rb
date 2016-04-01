@@ -8,7 +8,10 @@ def transform_assessment_programming_questions(course_ids = [])
       CoursemologyV1::Source::Assessment.transform(original_assessment_id)
     end
     column to: :description do
-      ContentParser.parse_mc_tags(source_record.assessment_question.description)
+      description = ContentParser.parse_mc_tags(source_record.assessment_question.description)
+      description, references = ContentParser.parse_images(source_record, description)
+      self.question.attachment_references = references if references.any?
+      description
     end
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i

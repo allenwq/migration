@@ -16,7 +16,10 @@ def transform_forum_posts(course_ids = [])
     end
     column :title
     column to: :text do
-      ContentParser.parse_mc_tags(source_record.text)
+      text = ContentParser.parse_mc_tags(source_record.text)
+      text, references = ContentParser.parse_images(source_record, text)
+      self.attachment_references = references if references.any?
+      text
     end
     column to: :creator_id do
       result = source_record.transform_creator_id
