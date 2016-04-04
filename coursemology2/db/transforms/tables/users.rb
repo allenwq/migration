@@ -32,6 +32,12 @@ def transform_users
         self.role = 0
       end
     end
+    column :uid do
+      if source_record.uid.present? && source_record.provider == 'facebook'
+        auth = { provider: 'facebook', uid: source_record.uid }
+        link_with_omniauth(auth)
+      end
+    end
 
     save validate: false
   end
