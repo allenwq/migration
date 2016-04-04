@@ -26,5 +26,4 @@ $ rake db:transform[coursemology_v1]
 
 ## Known Issues
 - Auto graded coding questions does not work, unless manually upload a new package contains the programming files and test cases.
-- S3 URLS in models are not parsed (V1 directly uploads things to S3 and put the raw url in the html description, this however need to be tracked in V2).
-- Some columns/tables which does not implementated in V2 are droped (Like scribing questions and forum post votes).
+- Some columns/tables which does not implementated in V2 are dropped (Like scribing questions).
