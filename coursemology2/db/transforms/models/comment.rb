@@ -24,8 +24,7 @@ module CoursemologyV1::Source
 
     def transform_creator_id
       user_id = User.transform(user_course.user_id)
-      puts "User not found Comment #{id}" unless user_id
-      user_id
+      user_id || ::User::DELETED_USER_ID
     end
   end
 
@@ -54,8 +53,7 @@ module CoursemologyV1::Source
 
     def transform_creator_id
       user_id = User.transform(user_course.user_id)
-      puts "User not found Comment #{id}" unless user_id
-      user_id
+      user_id || ::User::DELETED_USER_ID
     end
   end
 end

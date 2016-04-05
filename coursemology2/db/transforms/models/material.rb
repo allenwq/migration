@@ -35,7 +35,7 @@ module CoursemologyV1::Source
 
     def transform_creator_id
       if file_upload
-        file_upload.creator_id
+        User.transform(file_upload.creator_id) || ::User::DELETED_USER_ID
       end
     end
   end

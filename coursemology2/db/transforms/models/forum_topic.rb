@@ -32,10 +32,9 @@ module CoursemologyV1::Source
 
     def transform_creator_id
       # author id references to UserCourse
-      dst_course_user_id = CoursemologyV1::Source::UserCourse.transform(author_id)
+      dst_course_user_id = UserCourse.transform(author_id)
       user_id = ::CourseUser.find_by(id: dst_course_user_id).try(:user_id)
-      puts "User not found ForumTopic #{id}" unless user_id
-      user_id
+      user_id || ::User::DELETED_USER_ID
     end
   end
 
