@@ -23,7 +23,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
   thread 5
 
-  course_ids = 362
+  course_ids = [127, 362]
   transform_users
   transform_courses(course_ids)
   transform_course_users(course_ids)

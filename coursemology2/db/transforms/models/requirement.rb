@@ -19,7 +19,7 @@ module CoursemologyV1::Source
     def transform_actable
       case req_type
       when 'Achievement'
-        ::Course::Condition::Achievement.new(achievement_id: req_id)
+        ::Course::Condition::Achievement.new(achievement_id: Achievement.transform(req_id))
       when 'Level'
         dst_lvl_id = Level.transform(req_id)
         lvl_number = 0
@@ -40,6 +40,14 @@ module CoursemologyV1::Source
     scope :within_courses, ->(course_ids) do
       course_ids = Array(course_ids)
       joins(:assessment).where(assessment: { course_id: course_ids })
+    end
+  end
+
+  ::Course::Conditional::UserSatisfiabilityGraph.class_eval do
+    def self.reachable?(source, dest)
+      return true if source == dest || dest.nil?
+
+      dest.specific_conditions.index { |c| reachable?(source, c.dependent_object) }.present?
     end
   end
 end
