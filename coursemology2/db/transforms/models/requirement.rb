@@ -12,7 +12,7 @@ module CoursemologyV1::Source
       course_ids = Array(course_ids)
       # joins(:obj).where(obj: { course_id: course_ids })
       joins('INNER JOIN achievements ON requirements.obj_id = achievements.id').
-        where("achievements.course_id IN (#{course_ids.join(' ')})").
+        where("achievements.course_id IN (#{course_ids.join(', ')})").
         includes(:obj, :req)
     end
 
