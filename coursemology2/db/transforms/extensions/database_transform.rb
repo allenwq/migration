@@ -13,10 +13,8 @@ end
 
 DatabaseTransform::SchemaTable.class_eval do
   def run_transform_with_persistence(*args)
-    @source.reset_mapping
+    @source.reset_transform
     run_transform_without_persistence(*args)
-    @source.persist_mapping
-    $url_mapper.persist
   end
   alias_method_chain :run_transform, :persistence
 
@@ -49,36 +47,22 @@ end
 
 DatabaseTransform::SchemaTableRecordMapping.module_eval do
   def transform(old_primary_key)
-    mapping[old_primary_key.to_s]
+    store.get(table_name, old_primary_key)
   end
 
   def transformed?(old_primary_key)
-    mapping.has_key?(old_primary_key.to_s)
+    store.has_key?(table_name, old_primary_key)
   end
 
   def memoize_transform(old_primary_key, result)
-    mapping[old_primary_key.to_s] = result.id
+    store.set(table_name, old_primary_key, result.id)
   end
 
-  def mapping
-    @mapping ||= store.get(store_key)
-  end
-
-  def reset_mapping
-    @mapping = {}
-  end
-
-  def persist_mapping
-    store.set(store_key, mapping)
-  end
-
-  private
-
-  def store_key
-    'data_migration_v2_' + self.table_name
+  def reset_transform
+    store.reset_table(table_name)
   end
 
   def store
-    @store ||= YAMLStore.new
+    @store ||= RedisStore.new
   end
 end
