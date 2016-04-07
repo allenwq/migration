@@ -5,9 +5,23 @@ class CoursemologyV1 < DatabaseTransform::Schema
   Dir[File.dirname(__FILE__) + '/lib/*.rb'].each { |file| require file }
   Dir[File.dirname(__FILE__) + '/extensions/*.rb'].each { |file| require file }
 
-  ActsAsTenant.current_tenant = Instance.default
-  User.stamper = User.system
   $url_mapper = UrlHashMapper.new
+
+  around_job do |&job|
+    ActiveRecord::Base.remove_connection
+    Source::Base.remove_connection
+    ActiveRecord::Base.establish_connection
+    Source::Base.establish_connection :coursemology_v1
+    ActsAsTenant.current_tenant = Instance.default
+    User.stamper = User.system
+
+    job.call
+
+    ActiveRecord::Base.remove_connection
+    Source::Base.remove_connection
+  end
+
+  thread 4
 
   course_ids = 362
   transform_users

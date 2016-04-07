@@ -1,7 +1,7 @@
 def transform_manual_exp(course_ids = [])
   transform_table :exp_transactions,
                   to: ::Course::ExperiencePointsRecord,
-                  default_scope: proc { within_courses(course_ids).find_each } do
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column :exp, to: :points_awarded
     column to: :reason do

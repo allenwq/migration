@@ -1,7 +1,7 @@
 def transform_assessment_mcq_answers(course_ids = [])
   transform_table :assessment_mcq_answers,
                   to: ::Course::Assessment::Answer::MultipleResponse,
-                  default_scope: proc { within_courses(course_ids).with_eager_load.find_each } do
+                  default_scope: proc { within_courses(course_ids).with_eager_load } do
     primary_key :id
     column to: :submission_id do
       CoursemologyV1::Source::AssessmentSubmission.transform(source_record.submission_id)

@@ -1,5 +1,5 @@
 def transform_users
-  transform_table :users, to: ::User, default_scope: proc { find_each } do
+  transform_table :users, to: ::User, default_scope: proc { all } do
     primary_key :id
     column :name
     column :email do |old_email|

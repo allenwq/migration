@@ -1,7 +1,7 @@
 def transform_assessment_mcq_options(course_ids = [])
   transform_table :assessment_mcq_options,
                   to: ::Course::Assessment::Question::MultipleResponseOption,
-                  default_scope: proc { within_courses(course_ids).find_each } do
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column :question_id, to: :question_id do |question_id|
       CoursemologyV1::Source::AssessmentMcqQuestion.transform(question_id)

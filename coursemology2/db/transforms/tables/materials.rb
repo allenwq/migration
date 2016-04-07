@@ -45,7 +45,7 @@ def transform_materials(course_ids = [])
 
   transform_table :materials,
                   to: ::Course::Material,
-                  default_scope: proc { within_courses(course_ids).find_each } do
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :folder_id do
       CoursemologyV1::Source::MaterialFolder.transform(source_record.folder_id)

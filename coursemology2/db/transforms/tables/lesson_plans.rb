@@ -1,7 +1,7 @@
 def transform_lesson_plans(course_ids = [])
   transform_table :lesson_plan_milestones,
                   to: ::Course::LessonPlan::Milestone,
-                  default_scope: proc { within_courses(course_ids).find_each } do
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
       CoursemologyV1::Source::Course.transform(source_record.course_id)
@@ -20,7 +20,7 @@ def transform_lesson_plans(course_ids = [])
 
   transform_table :lesson_plan_entries,
                   to: ::Course::LessonPlan::Event,
-                  default_scope: proc { within_courses(course_ids).find_each } do
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
       CoursemologyV1::Source::Course.transform(source_record.course_id)

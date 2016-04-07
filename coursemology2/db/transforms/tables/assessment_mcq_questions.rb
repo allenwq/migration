@@ -1,7 +1,7 @@
 def transform_assessment_mcq_questions(course_ids = [])
   transform_table :assessment_mcq_questions,
                   to: ::Course::Assessment::Question::MultipleResponse,
-                  default_scope: proc { within_courses(course_ids).find_each } do
+                  default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :assessment_id do
       original_assessment_id = source_record.assessment_question.assessments.first.id
