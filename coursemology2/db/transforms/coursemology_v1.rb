@@ -21,7 +21,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
     Source::Base.remove_connection
   end
 
-  thread 4
+  thread 5
 
   course_ids = 362
   transform_users
