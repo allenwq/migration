@@ -13,12 +13,12 @@ def transform_assessment_tabs(course_ids = [])
 
       if source_record.owner_type == 'Assessment::Training'
         # TODO: This is a hack for deleting the default category
-        new_course.assessment_categories.unscoped.first.tabs.where(title: 'Default').delete_all
         # Unscope weight
-        new_course.assessment_categories.unscoped.first.id
+        new_course.assessment_categories.unscope(:order).first.tabs.where(title: 'Default').delete_all
+        new_course.assessment_categories.unscope(:order).first.id
       else
-        new_course.assessment_categories.unscoped.last.tabs.where(title: 'Default').delete_all
-        new_course.assessment_categories.unscoped.last.id
+        new_course.assessment_categories.unscope(:order).last.tabs.where(title: 'Default').delete_all
+        new_course.assessment_categories.unscope(:order).last.id
       end
     end
 

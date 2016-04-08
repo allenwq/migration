@@ -63,11 +63,12 @@ def assessment_infer_new_tab_id(old, new)
 
   # Try to assign to default tab
   new_course = Course.find(CoursemologyV1::Source::Course.transform(old.course_id))
-  # Training's category in the new course is the first, mission category is the second
+  # Training's category in the new course is the first, mission category is the second, so we
+  # need to unscope the default order by weight.
   if old.as_assessment_type == 'Assessment::Training'
-    new_course.assessment_categories.unscoped.first.tabs.first.id
+    new_course.assessment_categories.unscope(:order).first.tabs.first.id
   elsif old.as_assessment_type == 'Assessment::Mission'
-    new_course.assessment_categories.unscoped.last.tabs.first.id
+    new_course.assessment_categories.unscope(:order).last.tabs.first.id
   end
 end
 
