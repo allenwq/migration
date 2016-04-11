@@ -52,4 +52,15 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_assessment_comments(course_ids)
   transform_conditions(course_ids)
   transform_materials(course_ids)
+
+  after_transform do
+    SHUQUN_COURSES = [127]
+    shuqun = Instance.find_or_create_by!(name: 'Shuqun', host: 'shuqun.coursemology.org')
+
+    ActsAsTenant.current_tenant = shuqun
+    SHUQUN_COURSES.each do |src_course_id|
+      dst_course_id = Source::Course.transform(src_course_id)
+      Course.find(dst_course_id).update_column(:instance_id, shuqun.id)
+    end
+  end
 end
