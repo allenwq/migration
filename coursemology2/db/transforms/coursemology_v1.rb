@@ -54,10 +54,21 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_materials(course_ids)
 
   after_transform do
+    conn = ActiveRecord::Base.connection
+    begin
+      try ||= 3
+      conn.reconnect!
+    rescue
+      try -= 1
+      # There is a issue where connection closed unexpectedly, need retry
+      retry if try > 0
+    end
+
     SHUQUN_COURSES = [127]
     shuqun = Instance.find_or_create_by!(name: 'Shuqun', host: 'shuqun.coursemology.org')
 
-    ActsAsTenant.current_tenant = shuqun
+    # Need to be default because we want to find the course in the default instance
+    ActsAsTenant.current_tenant = Instance.default
     SHUQUN_COURSES.each do |src_course_id|
       dst_course_id = Source::Course.transform(src_course_id)
       Course.find(dst_course_id).update_column(:instance_id, shuqun.id)
