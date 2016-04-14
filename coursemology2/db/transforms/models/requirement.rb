@@ -42,12 +42,4 @@ module CoursemologyV1::Source
       joins(:assessment).where(assessment: { course_id: course_ids })
     end
   end
-
-  ::Course::Conditional::UserSatisfiabilityGraph.class_eval do
-    def self.reachable?(source, dest)
-      return true if source == dest || dest.nil?
-
-      dest.specific_conditions.index { |c| reachable?(source, c.dependent_object) }.present?
-    end
-  end
 end
