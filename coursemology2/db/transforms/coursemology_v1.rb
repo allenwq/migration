@@ -54,15 +54,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_materials(course_ids)
 
   after_transform do
-    conn = ActiveRecord::Base.connection
-    begin
-      try ||= 3
-      conn.reconnect!
-    rescue
-      try -= 1
-      # There is a issue where connection closed unexpectedly, need retry
-      retry if try > 0
-    end
+    ensure_db_connection
 
     SHUQUN_COURSES = [127]
     shuqun = Instance.find_or_create_by!(name: 'Shuqun', host: 'shuqun.coursemology.org')
@@ -70,8 +62,34 @@ class CoursemologyV1 < DatabaseTransform::Schema
     # Need to be default because we want to find the course in the default instance
     ActsAsTenant.current_tenant = Instance.default
     SHUQUN_COURSES.each do |src_course_id|
-      dst_course_id = Source::Course.transform(src_course_id)
-      Course.find(dst_course_id).update_column(:instance_id, shuqun.id)
+      dst_course = Course.find(Source::Course.transform(src_course_id))
+      move_course_to_instance(dst_course, shuqun)
+    end
+  end
+
+  class << self
+    private
+
+    def ensure_db_connection
+      conn = ActiveRecord::Base.connection
+      begin
+        try ||= 3
+        conn.reconnect!
+      rescue
+        try -= 1
+        # There is a issue where connection closed unexpectedly, need retry
+        retry if try > 0
+      end
+    end
+
+    def move_course_to_instance(course, instance)
+      # Move users belongs to courses in the instance to the instance.
+      user_ids_to_move = course.users.select(:id)
+      InstanceUser.where(user_id: user_ids_to_move).each do |instance_user|
+        instance_user.update_column(:instance_id, instance.id)
+      end
+
+      course.update_column(:instance_id, instance.id)
     end
   end
 end
