@@ -23,20 +23,28 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
   thread 8
 
-  course_ids = [127, 362]
+  SHUQUN_COURSES = [127]
+  NUS_COURSES = [362]
+  course_ids = NUS_COURSES + SHUQUN_COURSES
+
   transform_users
   transform_courses(course_ids)
   transform_course_users(course_ids)
+
   transform_achievements(course_ids)
   transform_course_user_achievements(course_ids)
+
   transform_announcements(course_ids)
   transform_levels(course_ids)
   transform_manual_exp(course_ids)
   transform_lesson_plans(course_ids)
+
   transform_forums(course_ids)
   transform_forum_topics(course_ids)
+  transform_forum_topic_views(course_ids)
   transform_forum_posts(course_ids)
   transform_forum_post_votes(course_ids)
+
   transform_assessment_tabs(course_ids)
   transform_assessments(course_ids)
   transform_assessment_mcq_questions(course_ids)
@@ -50,13 +58,13 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_assessment_programming_answers(course_ids)
   transform_assessment_skills(course_ids)
   transform_assessment_comments(course_ids)
+
   transform_conditions(course_ids)
   transform_materials(course_ids)
 
   after_transform do
     ensure_db_connection
 
-    SHUQUN_COURSES = [127]
     shuqun = Instance.find_or_create_by!(name: 'Shuqun', host: 'shuqun.coursemology.org')
 
     # Need to be default because we want to find the course in the default instance

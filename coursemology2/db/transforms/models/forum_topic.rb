@@ -38,6 +38,15 @@ module CoursemologyV1::Source
     end
   end
 
+  def_model 'forum_topic_views' do
+    belongs_to :topic, class_name: 'ForumTopic', inverse_of: nil
+
+    scope :within_courses, ->(course_ids) do
+      joins(topic: :forum).
+        where(topic: { forum: { course_id: course_ids } })
+    end
+  end
+
   ::Course::Forum::Topic.class_eval do
     # Do not build initial post
     def generate_initial_post
