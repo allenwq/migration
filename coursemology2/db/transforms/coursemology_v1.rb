@@ -25,7 +25,8 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
   SHUQUN_COURSES = [127]
   NUS_COURSES = [362]
-  course_ids = NUS_COURSES + SHUQUN_COURSES
+  NUS_HIGH_COURSES = [320]
+  course_ids = NUS_COURSES + SHUQUN_COURSES + NUS_HIGH_COURSES
 
   transform_users
   transform_courses(course_ids)
@@ -72,6 +73,12 @@ class CoursemologyV1 < DatabaseTransform::Schema
     SHUQUN_COURSES.each do |src_course_id|
       dst_course = Course.find(Source::Course.transform(src_course_id))
       move_course_to_instance(dst_course, shuqun)
+    end
+
+    nus_high = Instance.find_or_create_by!(name: 'NUS High', host: 'nushigh.coursemology.org')
+    NUS_HIGH_COURSES.each do |src_course_id|
+      dst_course = Course.find(Source::Course.transform(src_course_id))
+      move_course_to_instance(dst_course, nus_high)
     end
   end
 
