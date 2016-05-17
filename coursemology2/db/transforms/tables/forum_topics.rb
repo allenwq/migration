@@ -6,6 +6,9 @@ def transform_forum_topics(course_ids = [])
     column to: :forum_id do
       CoursemologyV1::Source::ForumForum.transform(source_record.forum_id)
     end
+    column to: :course_id do
+      CoursemologyV1::Source::Course.transform(source_record.forum.try(:course_id))
+    end
     column :title
     column :locked
     column :hidden
