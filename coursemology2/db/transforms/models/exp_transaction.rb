@@ -7,4 +7,9 @@ module CoursemologyV1::Source
         where(rewardable_id: nil) # Manually awarded exp
     }
   end
+
+  ::Course::ExperiencePointsRecord.class_eval do
+    def send_notification
+    end
+  end
 end

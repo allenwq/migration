@@ -54,5 +54,8 @@ module CoursemologyV1::Source
 
     def set_initial_post_title
     end
+
+    def send_notification
+    end
   end
 end

@@ -7,4 +7,9 @@ module CoursemologyV1::Source
       joins(:achievement).where(achievement: { course_id: course_ids })
     end
   end
+
+  ::Course::UserAchievement.class_eval do
+    def send_notification
+    end
+  end
 end

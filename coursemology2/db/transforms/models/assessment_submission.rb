@@ -26,6 +26,10 @@ module CoursemologyV1::Source
     # Skip auto grade
     def auto_grade_submission
     end
+
+    # Skip notification
+    def send_notification
+    end
   end
 
   # Skip conditional callbacks.
