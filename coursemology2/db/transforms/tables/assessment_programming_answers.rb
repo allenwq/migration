@@ -11,6 +11,10 @@ def transform_assessment_programming_answers(course_ids = [])
       source_record.transform_question_id
     end
 
+    column to: :course_id do
+      CoursemologyV1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
+    end
+
     column to: :workflow_state do
       source_record.transform_workflow_state
     end

@@ -5,7 +5,7 @@ module CoursemologyV1::Source
              :assessment_answer_grading, :assessment_submission, to: :assessment_answer
 
     scope :with_eager_load, ->() do
-      includes({ assessment_answer: [:assessment_question, :assessment_answer_grading, :assessment_submission]})
+      includes({ assessment_answer: [:std_course, :assessment_question, :assessment_answer_grading, :assessment_submission]})
     end
 
     scope :within_courses, ->(course_ids) do
