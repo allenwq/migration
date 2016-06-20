@@ -65,6 +65,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
   after_transform do
     ensure_db_connection
+    update_post_parent_id
 
     shuqun = Instance.find_or_create_by!(name: 'Shuqun', host: 'shuqun.coursemology.org')
 
@@ -105,6 +106,19 @@ class CoursemologyV1 < DatabaseTransform::Schema
       end
 
       course.update_column(:instance_id, instance.id)
+    end
+
+    def update_post_parent_id
+      # Set the parent of posts to be the first post (only for comments).
+      Course::Discussion::Topic.globally_displayed.includes(:posts).find_each do |topic|
+        return unless topic.posts.length
+        parent_id = topic.posts.first.id
+        topic.posts.each_with_index do |post, index|
+          next if index == 0
+
+          post.update_column(:parent_id, parent_id)
+        end
+      end
     end
   end
 end
