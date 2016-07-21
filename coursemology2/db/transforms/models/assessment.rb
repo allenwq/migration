@@ -7,7 +7,7 @@ module CoursemologyV1::Source
 
   ::Course::Assessment.class_eval do
     # Disable draft validation
-    def draft_status
+    def validate_draft_status_if_no_questions
     end
   end
 end
