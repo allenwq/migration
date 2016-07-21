@@ -65,6 +65,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
   after_transform do
     ensure_db_connection
+    merge_annotation_topics
     update_post_parent_id
 
     shuqun = Instance.find_or_create_by!(name: 'Shuqun', host: 'shuqun.coursemology.org')
@@ -118,6 +119,28 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
           post.update_column(:parent_id, parent_id)
         end
+      end
+    end
+
+    # There are annotations of same file and line, this is to merge them into one.
+    def merge_annotation_topics
+      duplicate_ids = Course::Assessment::Answer::ProgrammingFileAnnotation.
+        select([:line, :file_id]).group(:line, :file_id).having('count(*) > 1').to_a
+      duplicate_ids.each do |attr|
+        do_merge(attr.file_id, attr.line)
+      end
+    end
+
+    def do_merge(file_id, line)
+      annotations = Course::Assessment::Answer::ProgrammingFileAnnotation.where(file_id: file_id, line: line)
+
+      original = annotations[0]
+      duplicated = annotations[1..-1]
+      duplicated.each do |annotation|
+        annotation.posts.each do |post|
+          post.update_column(:topic_id, original.acting_as.id)
+        end
+        annotation.delete
       end
     end
   end
