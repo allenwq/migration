@@ -7,7 +7,13 @@ module CoursemologyV1::Source
 
   ::Course::Assessment.class_eval do
     # Disable draft validation
-    def validate_draft_status_if_no_questions
+    raise 'Method removed validate_prescence_of_questions' unless private_instance_methods(false).include?(:validate_prescence_of_questions)
+    def validate_prescence_of_questions
+    end
+
+    raise 'Method removed' unless private_instance_methods(false).include?(:validate_only_autograded_questions)
+    # Skip autograde validation
+    def validate_only_autograded_questions
     end
   end
 end

@@ -30,8 +30,11 @@ def transform_assessments(course_ids = [])
     end
     column to: :display_mode do
       if source_record.as_assessment_type == 'Assessment::Training'
+        # TODO: It's false because test cases of coding questions cannot be migrated
+        self.autograded = false
         :guided
       elsif source_record.as_assessment_type == 'Assessment::Mission'
+        self.autograded = false
         :worksheet
       end
     end
@@ -98,6 +101,7 @@ end
 # create_table "course_assessments", force: :cascade do |t|
 #   t.integer  "tab_id",       null: false, index: {name: "fk__course_assessments_tab_id"}, foreign_key: {references: "course_assessment_tabs", name: "fk_course_assessments_tab_id", on_update: :no_action, on_delete: :no_action}
 #   t.integer  "display_mode", default: 0, null: false
+#   t.boolean  "autograded",   null: false
 #   t.integer  "creator_id",   null: false, index: {name: "fk__course_assessments_creator_id"}, foreign_key: {references: "users", name: "fk_course_assessments_creator_id", on_update: :no_action, on_delete: :no_action}
 #   t.integer  "updater_id",   null: false, index: {name: "fk__course_assessments_updater_id"}, foreign_key: {references: "users", name: "fk_course_assessments_updater_id", on_update: :no_action, on_delete: :no_action}
 #   t.datetime "created_at",   null: false
