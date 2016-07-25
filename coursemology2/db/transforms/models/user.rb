@@ -28,4 +28,13 @@ module CoursemologyV1::Source
     def setup_new_reader
     end
   end
+
+  ::InstanceUser.before_create do
+    # enum role: { normal: 0, instructor: 1, administrator: 2, auto_grader: 3 }
+    v1_email = user.email
+    v1_user = User.find_by(email: v1_email)
+    if v1_user && v1_user.system_role_id == 3
+      self.role = :instructor
+    end
+  end
 end

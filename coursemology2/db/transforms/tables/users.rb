@@ -63,6 +63,12 @@ end
 #   t.string   "current_sign_in_ip"
 #   t.string   "last_sign_in_ip"
 #   t.integer  "system_role_id"
+#  [1, "superuser"],
+#  [2, "normal"],
+#  [3, "lecturer"],
+#  [4, "ta"],
+#  [5, "student"],
+#  [6, "shared"]
 #   t.time     "deleted_at"
 #   t.string   "provider"
 #   t.string   "uid"
