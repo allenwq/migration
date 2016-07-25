@@ -38,6 +38,9 @@ def transform_users
         link_with_omniauth(auth)
       end
     end
+    column to: :time_zone do
+      source_record.time_zone || 'Singapore'
+    end
 
     save validate: false
   end
