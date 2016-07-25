@@ -23,9 +23,9 @@ class CoursemologyV1 < DatabaseTransform::Schema
 
   thread 8
 
-  SHUQUN_COURSES = [127]
-  NUS_COURSES = [362]
-  NUS_HIGH_COURSES = [320]
+  SHUQUN_COURSES = []
+  NUS_COURSES = [362, 470]
+  NUS_HIGH_COURSES = []
   course_ids = NUS_COURSES + SHUQUN_COURSES + NUS_HIGH_COURSES
 
   transform_users
@@ -52,13 +52,15 @@ class CoursemologyV1 < DatabaseTransform::Schema
   transform_assessment_mcq_options(course_ids)
   transform_assessment_programming_questions(course_ids)
   transform_assessment_trq_questions(course_ids)
+
   transform_assessment_submissions(course_ids)
   transform_assessment_mcq_answers(course_ids)
   transform_assessment_mcq_answer_options(course_ids)
   transform_assessment_trq_answers(course_ids)
   transform_assessment_programming_answers(course_ids)
-  transform_assessment_skills(course_ids)
   transform_assessment_comments(course_ids)
+
+  transform_assessment_skills(course_ids)
 
   transform_conditions(course_ids)
   transform_materials(course_ids)
@@ -112,10 +114,12 @@ class CoursemologyV1 < DatabaseTransform::Schema
     def update_post_parent_id
       # Set the parent of posts to be the first post (only for comments).
       Course::Discussion::Topic.globally_displayed.includes(:posts).find_each do |topic|
-        return unless topic.posts.length
+        return unless topic.posts.length > 1
         parent_id = nil
+        # Update parent id to previous post.
         topic.posts.each_with_index do |post, index|
           post.update_column(:parent_id, parent_id)
+          parent_id = post.id
         end
       end
     end
