@@ -9,7 +9,7 @@ def transform_announcements(course_ids = [])
     column :title, to: :title do |title|
       # some of the announcements don't have titles,
       # example: http://coursemology.org/courses/193/announcements
-      title.present? ? title : '( No Title )'
+      title.present? ? title : 'Untitled'
     end
     column :description, to: :content do |description|
       description = ContentParser.parse_mc_tags(description)

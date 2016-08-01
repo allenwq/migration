@@ -8,7 +8,7 @@ def transform_assessment_mcq_questions(course_ids = [])
       CoursemologyV1::Source::Assessment.transform(original_assessment_id)
     end
     column to: :title do
-      source_record.assessment_question.title || '( No Title )'
+      source_record.assessment_question.title || 'Untitled'
     end
     column to: :description do
       description = ContentParser.parse_mc_tags(source_record.assessment_question.description)

@@ -21,7 +21,7 @@ def transform_assessment_programming_questions(course_ids = [])
     end
     column to: :title do
       origin_title = source_record.assessment_question.title
-      origin_title.present? ? origin_title : '( No Title )'
+      origin_title.present? ? origin_title : 'Untitled'
     end
     column to: :language_id do
       # V1: 1 => python3.3, 2 => python3.4, 3 => python2.7, 4 => python3.5

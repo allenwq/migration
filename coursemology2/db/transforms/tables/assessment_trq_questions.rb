@@ -9,7 +9,7 @@ def transform_assessment_trq_questions(course_ids = [])
     end
     column to: :title do
       origin_title = source_record.assessment_question.title
-      origin_title.present? ? origin_title : '( No Title )'
+      origin_title.present? ? origin_title : 'Untitled'
     end
     column to: :description do
       description = ContentParser.parse_mc_tags(source_record.assessment_question.description)
