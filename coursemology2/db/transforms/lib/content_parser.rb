@@ -5,8 +5,8 @@ class ContentParser
     content.gsub!('[mc]', '<pre lang="python"><code>')
     content.gsub!('[/mc]', '</code></pre>')
 
-    content.gsub!('[c]', '<pre lang="python"><code>')
-    content.gsub!('[/c]', '</code></pre>')
+    content.gsub!('[c]', '<span lang="python"><code>')
+    content.gsub!('[/c]', '</code></span>')
     content
   end
 
