@@ -22,7 +22,7 @@ def transform_assessment_mcq_questions(course_ids = [])
     column to: :weight do
       source_record.assessment_question.question_assessments.first.position || 0
     end
-    column to: :question_type do
+    column to: :grading_scheme do
       if source_record.select_all
         :all_correct
       else
@@ -58,7 +58,7 @@ end
 #   t.datetime "updated_at",    null: false
 # end
 # create_table "course_assessment_question_multiple_responses", force: :cascade do |t|
-#   t.integer "question_type", default: 0, null: false
+#   t.integer "grading_scheme", default: 0, null: false
 # end
 
 # V1
