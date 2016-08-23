@@ -27,7 +27,7 @@ module CoursemologyV1::Source
         ::Course::Condition::Level.new(minimum_level: lvl_number)
       when 'AsmReq'
         dst_assessment_id = Assessment.transform(req.asm_id)
-        percent = req.min_grade.to_f / req.asm.max_grade
+        percent = req.min_grade.to_f # min_grade is a percent, not grade.
         ::Course::Condition::Assessment.new(assessment_id: dst_assessment_id,
                                             minimum_grade_percentage: percent)
       end
