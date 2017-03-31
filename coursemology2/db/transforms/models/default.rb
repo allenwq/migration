@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'user_courses', 'announcements', 'levels'
 
   ::Course::Announcement.class_eval do

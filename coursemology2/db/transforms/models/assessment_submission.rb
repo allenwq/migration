@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'assessment_submissions' do
     belongs_to :assessment, inverse_of: nil
     belongs_to :std_course, class_name: 'UserCourse', inverse_of: nil

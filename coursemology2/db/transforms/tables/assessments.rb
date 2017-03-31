@@ -4,7 +4,7 @@ def transform_assessments(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column :course_id, to: :course_id, null: false do |old_course_id|
-      CoursemologyV1::Source::Course.transform(old_course_id)
+      V1::Source::Course.transform(old_course_id)
     end
     column :title
     column to: :description do
@@ -42,7 +42,7 @@ def transform_assessments(course_ids = [])
       assessment_infer_new_tab_id(source_record, self)
     end
     column :creator_id, to: :creator_id do |creator_id|
-      result = CoursemologyV1::Source::User.transform(creator_id)
+      result = V1::Source::User.transform(creator_id)
       self.updater_id = result
       result
     end
@@ -62,10 +62,10 @@ end
 
 def assessment_infer_new_tab_id(old, new)
   # Some assessment has a tab id of 0...
-  return CoursemologyV1::Source::Tab.transform(old.tab_id) if old.tab_id && old.tab_id > 0
+  return V1::Source::Tab.transform(old.tab_id) if old.tab_id && old.tab_id > 0
 
   # Try to assign to default tab
-  new_course = Course.find(CoursemologyV1::Source::Course.transform(old.course_id))
+  new_course = Course.find(V1::Source::Course.transform(old.course_id))
   # Training's category in the new course is the first, mission category is the second, so we
   # need to unscope the default order by weight.
   if old.as_assessment_type == 'Assessment::Training'

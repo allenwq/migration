@@ -38,7 +38,7 @@ def transform_assessment_comments(course_ids = [])
     column to: :topic do
       file = source_record.transform_file
       if file
-        new_course_id = CoursemologyV1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
+        new_course_id = V1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
         Course::Assessment::Answer::ProgrammingFileAnnotation.
           new(file: file, line: source_record.line_start, course_id: new_course_id).discussion_topic
       end

@@ -4,14 +4,14 @@ def transform_assessment_trq_answers(course_ids = [])
                   default_scope: proc { within_courses(course_ids).with_eager_load } do
     primary_key :id
     column to: :submission_id do
-      CoursemologyV1::Source::AssessmentSubmission.transform(source_record.submission_id)
+      V1::Source::AssessmentSubmission.transform(source_record.submission_id)
     end
     column to: :question_id do
       source_record.transform_question_id
     end
 
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
+      V1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
     end
 
     column to: :workflow_state do
@@ -40,7 +40,7 @@ def transform_assessment_trq_answers(course_ids = [])
       if graded?
         id = nil
         if source_record.assessment_answer_grading
-          id = CoursemologyV1::Source::User.transform(source_record.assessment_answer_grading.grader_id)
+          id = V1::Source::User.transform(source_record.assessment_answer_grading.grader_id)
         end
         id || User::SYSTEM_USER_ID
       end

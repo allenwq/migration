@@ -4,13 +4,13 @@ def transform_lesson_plans(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.course_id)
+      V1::Source::Course.transform(source_record.course_id)
     end
     column :title
     column :description
     column :start_at
     column to: :creator_id do
-      result = CoursemologyV1::Source::User.transform(source_record.creator_id)
+      result = V1::Source::User.transform(source_record.creator_id)
       self.updater_id = result
       result
     end
@@ -23,7 +23,7 @@ def transform_lesson_plans(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.course_id)
+      V1::Source::Course.transform(source_record.course_id)
     end
     column to: :event_type do
       source_record.transform_entry_type
@@ -37,7 +37,7 @@ def transform_lesson_plans(course_ids = [])
       false
     end
     column to: :creator_id do
-      result = CoursemologyV1::Source::User.transform(source_record.creator_id)
+      result = V1::Source::User.transform(source_record.creator_id)
       self.updater_id = result
       result
     end

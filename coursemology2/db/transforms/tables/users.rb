@@ -3,7 +3,7 @@ def transform_users
     before_transform do |old|
       v2_email = User::Email.find_by(email: old.email)
       if v2_email
-        CoursemologyV1::Source::User.memoize_transform(old.id, v2_email.user_id)
+        V1::Source::User.memoize_transform(old.id, v2_email.user_id)
         false
       else
         true

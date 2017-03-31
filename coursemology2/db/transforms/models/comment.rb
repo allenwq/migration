@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'comments' do
     belongs_to :assessment_answer, foreign_key: 'commentable_id', inverse_of: nil
     belongs_to :user_course, inverse_of: nil

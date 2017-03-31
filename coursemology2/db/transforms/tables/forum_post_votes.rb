@@ -4,11 +4,11 @@ def transform_forum_post_votes(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :post_id do
-      CoursemologyV1::Source::ForumPost.transform(source_record.votable_id)
+      V1::Source::ForumPost.transform(source_record.votable_id)
     end
     column :vote_flag
     column to: :creator_id do
-      result = CoursemologyV1::Source::User.transform(source_record.voter_id)
+      result = V1::Source::User.transform(source_record.voter_id)
       self.updater_id = result
       result
     end

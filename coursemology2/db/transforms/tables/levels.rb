@@ -4,7 +4,7 @@ def transform_levels(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column :course_id, to: :course_id do |course_id|
-      CoursemologyV1::Source::Course.transform(course_id)
+      V1::Source::Course.transform(course_id)
     end
     column :exp_threshold, to: :experience_points_threshold
     column :updated_at, null: false

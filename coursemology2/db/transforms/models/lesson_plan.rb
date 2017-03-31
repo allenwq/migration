@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'lesson_plan_milestones', 'lesson_plan_resources'
 
   def_model 'lesson_plan_entries' do

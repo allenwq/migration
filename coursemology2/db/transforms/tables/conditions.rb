@@ -4,7 +4,7 @@ def transform_conditions(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :conditional do
-      dst_id = CoursemologyV1::Source::Achievement.transform(source_record.obj_id)
+      dst_id = V1::Source::Achievement.transform(source_record.obj_id)
       ::Course::Achievement.find_by(id: dst_id)
     end
     column to: :course_id do
@@ -29,14 +29,14 @@ def transform_conditions(course_ids = [])
       ::Course::Assessment.name
     end
     column to: :conditional_id do
-      CoursemologyV1::Source::Assessment.transform(source_record.dependent_id)
+      V1::Source::Assessment.transform(source_record.dependent_id)
     end
     column to: :course_id do
       conditional.course_id
     end
     column to: :assessment_id do
       # The id points to the assessment id.
-      CoursemologyV1::Source::Assessment.transform(source_record.id)
+      V1::Source::Assessment.transform(source_record.id)
     end
     column to: :minimum_grade_percentage do
       # Only require to finish the dependent one.

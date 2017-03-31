@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'forum_topics' do
     belongs_to :forum, class_name: 'ForumForum', inverse_of: nil
 

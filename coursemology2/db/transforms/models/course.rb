@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'course_navbar_preferences'
 
   def_model 'courses' do

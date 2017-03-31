@@ -1,4 +1,4 @@
-class CoursemologyV1 < DatabaseTransform::Schema
+class V1 < DatabaseTransform::Schema
   Dir[File.dirname(__FILE__) + '/tables/*.rb'].each {|file| require file }
   require_relative 'models/base'
   Dir[File.dirname(__FILE__) + '/models/*.rb'].each {|file| require file }
@@ -11,7 +11,7 @@ class CoursemologyV1 < DatabaseTransform::Schema
     ActiveRecord::Base.remove_connection
     Source::Base.remove_connection
     ActiveRecord::Base.establish_connection
-    Source::Base.establish_connection :coursemology_v1
+    Source::Base.establish_connection :v1
     ActsAsTenant.current_tenant = Instance.default
     User.stamper = User.system
 

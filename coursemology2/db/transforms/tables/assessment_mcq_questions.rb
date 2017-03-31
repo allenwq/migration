@@ -5,7 +5,7 @@ def transform_assessment_mcq_questions(course_ids = [])
     primary_key :id
     column to: :assessment_id do
       original_assessment_id = source_record.assessment_question.assessments.first.id
-      CoursemologyV1::Source::Assessment.transform(original_assessment_id)
+      V1::Source::Assessment.transform(original_assessment_id)
     end
     column to: :title do
       source_record.assessment_question.title || 'Untitled'
@@ -30,7 +30,7 @@ def transform_assessment_mcq_questions(course_ids = [])
       end
     end
     column to: :creator_id do
-      result = CoursemologyV1::Source::User.transform(source_record.assessment_question.creator_id)
+      result = V1::Source::User.transform(source_record.assessment_question.creator_id)
       self.updater_id = result
       result
     end

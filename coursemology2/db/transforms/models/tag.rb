@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'tag_groups', 'tags'
 
   def_model 'taggable_tags' do

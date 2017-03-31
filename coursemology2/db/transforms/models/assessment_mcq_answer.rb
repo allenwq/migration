@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'assessment_mcq_answers' do
     has_one :assessment_answer, as: :as_answer, inverse_of: nil
     delegate :submission_id, :question_id, :std_course_id, :content, :finalised, :correct,

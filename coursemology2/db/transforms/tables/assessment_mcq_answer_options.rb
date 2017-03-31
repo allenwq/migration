@@ -4,10 +4,10 @@ def transform_assessment_mcq_answer_options(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :answer_id do
-      CoursemologyV1::Source::AssessmentMcqAnswer.transform(source_record.answer_id)
+      V1::Source::AssessmentMcqAnswer.transform(source_record.answer_id)
     end
     column to: :option_id do
-      CoursemologyV1::Source::AssessmentMcqOption.transform(source_record.option_id)
+      V1::Source::AssessmentMcqOption.transform(source_record.option_id)
     end
 
     skip_saving_unless_valid

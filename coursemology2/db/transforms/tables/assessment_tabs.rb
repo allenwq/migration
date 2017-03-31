@@ -8,7 +8,7 @@ def transform_assessment_tabs(course_ids = [])
       pos || 1
     end
     column to: :category_id do
-      new_course = Course.find(CoursemologyV1::Source::Course.transform(source_record.course_id))
+      new_course = Course.find(V1::Source::Course.transform(source_record.course_id))
       raise 'Category count invalid' if new_course.assessment_categories.count != 2
 
       if source_record.owner_type == 'Assessment::Training'

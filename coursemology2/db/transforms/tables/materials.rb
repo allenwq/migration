@@ -5,7 +5,7 @@ def transform_materials(course_ids = [])
     primary_key :id
     column to: :parent_id do
       if source_record.parent_folder_id
-        dst_id = CoursemologyV1::Source::MaterialFolder.transform(source_record.parent_folder_id)
+        dst_id = V1::Source::MaterialFolder.transform(source_record.parent_folder_id)
         if !dst_id
           puts "Cannot find parent for #{source_record.class.name} #{source_record.id}"
         end
@@ -14,7 +14,7 @@ def transform_materials(course_ids = [])
     end
 
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.course_id)
+      V1::Source::Course.transform(source_record.course_id)
     end
     column to: :name do
       Pathname.normalize_filename(source_record.name)
@@ -48,7 +48,7 @@ def transform_materials(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :folder_id do
-      CoursemologyV1::Source::MaterialFolder.transform(source_record.folder_id)
+      V1::Source::MaterialFolder.transform(source_record.folder_id)
     end
     column to: :name do
       source_record.transform_name

@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'assessment_mcq_questions' do
     has_one :assessment_question, as: :as_question, inverse_of: nil
 

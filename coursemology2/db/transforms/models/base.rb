@@ -1,7 +1,7 @@
-module CoursemologyV1::Source
+module V1::Source
   class Base < ActiveRecord::Base
     self.abstract_class = true
-    establish_connection :coursemology_v1
+    establish_connection :v1
 
     extend DatabaseTransform::SchemaTableRecordMapping
 

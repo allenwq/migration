@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'assessment_general_answers' do
     has_one :assessment_answer, as: :as_answer, inverse_of: nil
     delegate :submission_id, :question_id, :std_course_id, :content, :finalised, :correct,
@@ -37,7 +37,7 @@ module CoursemologyV1::Source
 
     def transform_question_id
       src_trq_id = assessment_answer.assessment_question.as_question_id
-      dst_trq_id = ::CoursemologyV1::Source::AssessmentGeneralQuestion.transform(src_trq_id)
+      dst_trq_id = ::V1::Source::AssessmentGeneralQuestion.transform(src_trq_id)
       ::Course::Assessment::Question.
         find_by(actable_id: dst_trq_id,
                 actable_type: ::Course::Assessment::Question::TextResponse.name).try(:id)

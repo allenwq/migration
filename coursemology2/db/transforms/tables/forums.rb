@@ -4,7 +4,7 @@ def transform_forums(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.course_id)
+      V1::Source::Course.transform(source_record.course_id)
     end
     column :name
     column :description

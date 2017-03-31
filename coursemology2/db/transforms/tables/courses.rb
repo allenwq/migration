@@ -2,7 +2,7 @@ def transform_courses(ids = [])
   transform_table :courses, to: ::Course, default_scope: proc { where(id: ids) } do
     primary_key :id
     column to: :creator_id do
-      CoursemologyV1::Source::User.transform(source_record.creator_id)
+      V1::Source::User.transform(source_record.creator_id)
     end
     column :title
     column :description
@@ -47,8 +47,8 @@ def build_assessment_categories(source, destination)
     title: training_pref.name,
     weight: training_pref.pos,
 
-    creator_id: CoursemologyV1::Source::User.transform(source.creator_id),
-    updater_id: CoursemologyV1::Source::User.transform(source.creator_id),
+    creator_id: V1::Source::User.transform(source.creator_id),
+    updater_id: V1::Source::User.transform(source.creator_id),
     created_at: training_pref.created_at,
     updated_at: training_pref.updated_at
   )
@@ -58,8 +58,8 @@ def build_assessment_categories(source, destination)
     title: mission_pref.name,
     weight: mission_pref.pos,
 
-    creator_id: CoursemologyV1::Source::User.transform(source.creator_id),
-    updater_id: CoursemologyV1::Source::User.transform(source.creator_id),
+    creator_id: V1::Source::User.transform(source.creator_id),
+    updater_id: V1::Source::User.transform(source.creator_id),
     created_at: mission_pref.created_at,
     updated_at: mission_pref.updated_at
   )

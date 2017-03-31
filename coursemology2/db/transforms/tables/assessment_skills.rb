@@ -4,7 +4,7 @@ def transform_assessment_skills(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.course_id)
+      V1::Source::Course.transform(source_record.course_id)
     end
     column :name, to: :title
     column :description, to: :description do |description|
@@ -21,10 +21,10 @@ def transform_assessment_skills(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.course_id)
+      V1::Source::Course.transform(source_record.course_id)
     end
     column to: :skill_branch_id do
-      CoursemologyV1::Source::TagGroup.transform(source_record.tag_group_id)
+      V1::Source::TagGroup.transform(source_record.tag_group_id)
     end
     column :name, to: :title
     column :description, to: :description do |description|
@@ -41,11 +41,11 @@ def transform_assessment_skills(course_ids = [])
     primary_key :id
     column to: :question_id do
       if source_record.taggable_type == 'Assessment::Question'
-        CoursemologyV1::Source::AssessmentQuestion.transform(source_record.taggable_id)
+        V1::Source::AssessmentQuestion.transform(source_record.taggable_id)
       end
     end
     column to: :skill_id do
-      CoursemologyV1::Source::Tag.transform(source_record.tag_id)
+      V1::Source::Tag.transform(source_record.tag_id)
     end
 
     save validate: false, if: proc {

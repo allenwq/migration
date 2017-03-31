@@ -4,10 +4,10 @@ def transform_course_users(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column :user_id, to: :user_id do |user_id|
-      CoursemologyV1::Source::User.transform(user_id)
+      V1::Source::User.transform(user_id)
     end
     column :course_id, to: :course_id do |course_id|
-      CoursemologyV1::Source::Course.transform(course_id)
+      V1::Source::Course.transform(course_id)
     end
     column :name
     column :is_phantom, to: :phantom

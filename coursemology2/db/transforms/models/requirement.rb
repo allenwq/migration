@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'asm_reqs' do
     belongs_to :asm, polymorphic: true
   end

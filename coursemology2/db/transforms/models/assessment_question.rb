@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'assessment_questions' do
     has_many :question_assessments, inverse_of: nil, foreign_key: 'question_id'
     has_many :assessments, through: :question_assessments, inverse_of: nil

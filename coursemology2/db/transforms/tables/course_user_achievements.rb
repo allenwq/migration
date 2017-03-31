@@ -4,10 +4,10 @@ def transform_course_user_achievements(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :course_user_id do
-      CoursemologyV1::Source::UserCourse.transform(source_record.user_course_id)
+      V1::Source::UserCourse.transform(source_record.user_course_id)
     end
     column to: :achievement_id do
-      CoursemologyV1::Source::Achievement.transform(source_record.achievement_id)
+      V1::Source::Achievement.transform(source_record.achievement_id)
     end
     column :obtained_at
     column :created_at

@@ -4,10 +4,10 @@ def transform_forum_topics(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :forum_id do
-      CoursemologyV1::Source::ForumForum.transform(source_record.forum_id)
+      V1::Source::ForumForum.transform(source_record.forum_id)
     end
     column to: :course_id do
-      CoursemologyV1::Source::Course.transform(source_record.forum.try(:course_id))
+      V1::Source::Course.transform(source_record.forum.try(:course_id))
     end
     column :title
     column :locked

@@ -4,10 +4,10 @@ def transform_assessment_submissions(course_ids = [])
                   default_scope: proc { includes(:std_course).within_courses(course_ids) } do
     primary_key :id
     column :std_course_id, to: :course_user_id do |std_course_id|
-      CoursemologyV1::Source::UserCourse.transform(std_course_id)
+      V1::Source::UserCourse.transform(std_course_id)
     end
     column to: :assessment_id do
-      CoursemologyV1::Source::Assessment.transform(source_record.assessment_id)
+      V1::Source::Assessment.transform(source_record.assessment_id)
     end
     column to: :workflow_state do
       # V1: 'attempting', 'submitted', 'graded'
@@ -28,7 +28,7 @@ def transform_assessment_submissions(course_ids = [])
       source_record.exp_awarded
     end
     column to: :creator_id do
-      result = CoursemologyV1::Source::User.transform(source_record.std_course.user_id)
+      result = V1::Source::User.transform(source_record.std_course.user_id)
       self.updater_id = result
       result
     end

@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'user_achievements' do
     belongs_to :achievement, inverse_of: nil
 

@@ -1,4 +1,4 @@
-module CoursemologyV1::Source
+module V1::Source
   def_model 'file_uploads' do
     scope :visible, ->() { where(is_public: true) }
     require 'open-uri'

@@ -4,10 +4,10 @@ def transform_forum_topic_views(course_ids = [])
                   default_scope: proc { within_courses(course_ids) } do
     primary_key :id
     column to: :topic_id do
-      CoursemologyV1::Source::ForumTopic.transform(source_record.topic_id)
+      V1::Source::ForumTopic.transform(source_record.topic_id)
     end
     column to: :user_id do
-      dst_course_user_id = CoursemologyV1::Source::UserCourse.transform(source_record.user_id)
+      dst_course_user_id = V1::Source::UserCourse.transform(source_record.user_id)
       ::CourseUser.find_by(id: dst_course_user_id).try(:user_id) || ::User::DELETED_USER_ID
     end
     column :created_at

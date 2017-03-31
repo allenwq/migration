@@ -4,7 +4,7 @@ def transform_forum_posts(course_ids = [])
                   default_scope: proc { within_courses(course_ids).tsort } do
     primary_key :id
     column to: :parent_id do
-      dst_id = CoursemologyV1::Source::ForumPost.transform(source_record.parent_id)
+      dst_id = V1::Source::ForumPost.transform(source_record.parent_id)
       if source_record.parent_id && !dst_id
         puts "Cannot find parent for #{source_record.class.name} #{source_record.id}"
       end
@@ -12,7 +12,7 @@ def transform_forum_posts(course_ids = [])
       dst_id
     end
     column to: :topic_id do
-      CoursemologyV1::Source::ForumTopic.transform(source_record.topic_id)
+      V1::Source::ForumTopic.transform(source_record.topic_id)
     end
     column :title
     column to: :text do
