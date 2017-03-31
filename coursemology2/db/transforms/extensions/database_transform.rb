@@ -54,8 +54,8 @@ DatabaseTransform::SchemaTableRecordMapping.module_eval do
     store.has_key?(table_name, old_primary_key)
   end
 
-  def memoize_transform(old_primary_key, result)
-    store.set(table_name, old_primary_key, result.id)
+  def memoize_transform(old_primary_key, new_key)
+    store.set(table_name, old_primary_key, new_key)
   end
 
   def reset_transform

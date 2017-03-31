@@ -1,5 +1,15 @@
 def transform_users
   transform_table :users, to: ::User, default_scope: proc { all } do
+    before_transform do |old|
+      v2_email = User::Email.find_by(email: old.email)
+      if v2_email
+        CoursemologyV1::Source::User.memoize_transform(old.id, v2_email.user_id)
+        false
+      else
+        true
+      end
+    end
+
     primary_key :id
     column :name
     column :email do |old_email|
