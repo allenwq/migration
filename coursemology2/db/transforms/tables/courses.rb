@@ -13,16 +13,9 @@ def transform_courses(ids = [])
         logo_file.close unless logo_file.closed?
       end
     end
-    column :is_publish do
-      # enum status: { closed: 0, published: 1, opened: 2 }
-      if source_record.is_publish?
-        self.status = :published
-      elsif source_record.is_open?
-        self.status = :opened
-      else
-        self.status = :closed
-      end
-    end
+    column :is_publish, to: :published
+
+    column :is_open, to: :enrollable
 
     column to: :assessment_categories do
       migrate_settings(source_record, self)
@@ -145,17 +138,20 @@ end
 
 # V2:
 # create_table "courses", force: :cascade do |t|
-#   t.integer  "instance_id",      null: false, index: {name: "fk__courses_instance_id"}, foreign_key: {references: "instances", name: "fk_courses_instance_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "title",            limit: 255,             null: false
+#   t.integer  "instance_id",      :null=>false, :index=>{:name=>"fk__courses_instance_id"}, :foreign_key=>{:references=>"instances", :name=>"fk_courses_instance_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "title",            :limit=>255, :null=>false
 #   t.text     "description"
 #   t.text     "logo"
-#   t.integer  "status",           default: 0, null: false
-#   t.string   "registration_key", limit: 16, index: {name: "index_courses_on_registration_key", unique: true}
+#   t.boolean  "published",        :default=>false, :null=>false
+#   t.boolean  "enrollable",       :default=>false, :null=>false
+#   t.string   "registration_key", :limit=>16, :index=>{:name=>"index_courses_on_registration_key", :unique=>true}
 #   t.text     "settings"
-#   t.datetime "start_at",         null: false
-#   t.datetime "end_at",           null: false
-#   t.integer  "creator_id",       null: false, index: {name: "fk__courses_creator_id"}, foreign_key: {references: "users", name: "fk_courses_creator_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "updater_id",       null: false, index: {name: "fk__courses_updater_id"}, foreign_key: {references: "users", name: "fk_courses_updater_id", on_update: :no_action, on_delete: :no_action}
-#   t.datetime "created_at",       null: false
-#   t.datetime "updated_at",       null: false
+#   t.boolean  "gamified",         :default=>true, :null=>false
+#   t.datetime "start_at",         :null=>false
+#   t.datetime "end_at",           :null=>false
+#   t.integer  "creator_id",       :null=>false, :index=>{:name=>"fk__courses_creator_id"}, :foreign_key=>{:references=>"users", :name=>"fk_courses_creator_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "updater_id",       :null=>false, :index=>{:name=>"fk__courses_updater_id"}, :foreign_key=>{:references=>"users", :name=>"fk_courses_updater_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.datetime "created_at",       :null=>false
+#   t.datetime "updated_at",       :null=>false
 # end
+
