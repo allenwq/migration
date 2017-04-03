@@ -5,5 +5,9 @@ module V1::Source
     # Ignore attachment callbacks.
     def update_attachment_references
     end
+
+    # Do not send notification
+    def send_notification
+    end
   end
 end

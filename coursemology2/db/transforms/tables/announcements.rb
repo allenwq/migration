@@ -37,16 +37,16 @@ end
 #
 # V2:
 # create_table "course_announcements", force: :cascade do |t|
-#   t.integer  "course_id",  null: false, index: {name: "fk__course_announcements_course_id"}, foreign_key: {references: "courses", name: "fk_course_announcements_course_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "title",      limit: 255,                 null: false
+#   t.integer  "course_id",  :null=>false, :index=>{:name=>"fk__course_announcements_course_id"}, :foreign_key=>{:references=>"courses", :name=>"fk_course_announcements_course_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "title",      :limit=>255, :null=>false
 #   t.text     "content"
-#   t.boolean  "sticky",     default: false, null: false
-#   t.datetime "start_at",   null: false
-#   t.datetime "end_at",     null: false
-#   t.integer  "creator_id", null: false, index: {name: "fk__course_announcements_creator_id"}, foreign_key: {references: "users", name: "fk_course_announcements_creator_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "updater_id", null: false, index: {name: "fk__course_announcements_updater_id"}, foreign_key: {references: "users", name: "fk_course_announcements_updater_id", on_update: :no_action, on_delete: :no_action}
-#   t.datetime "created_at", null: false
-#   t.datetime "updated_at", null: false
+#   t.boolean  "sticky",     :default=>false, :null=>false
+#   t.datetime "start_at",   :null=>false
+#   t.datetime "end_at",     :null=>false
+#   t.integer  "creator_id", :null=>false, :index=>{:name=>"fk__course_announcements_creator_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_announcements_creator_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "updater_id", :null=>false, :index=>{:name=>"fk__course_announcements_updater_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_announcements_updater_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.datetime "created_at", :null=>false
+#   t.datetime "updated_at", :null=>false
 # end
 
 # V1
