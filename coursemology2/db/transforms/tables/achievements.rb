@@ -17,9 +17,7 @@ def transform_achievements(course_ids = [])
         badge_file.close unless badge_file.closed?
       end
     end
-    column :published, to: :draft do |published|
-      !published
-    end
+    column :published
     column :position, to: :weight do |position|
       position || 0
     end
