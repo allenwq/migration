@@ -33,8 +33,8 @@ def transform_lesson_plans(course_ids = [])
     column :location
     column :start_at
     column :end_at
-    column to: :draft do
-      false
+    column to: :published do
+      true
     end
     column to: :creator_id do
       result = V1::Source::User.transform(source_record.creator_id)
@@ -56,33 +56,35 @@ end
 #
 # create_table "course_lesson_plan_items", force: :cascade do |t|
 #   t.integer  "actable_id"
-#   t.string   "actable_type",    limit: 255, index: {name: "index_course_lesson_plan_items_on_actable_type_and_actable_id", with: ["actable_id"], unique: true}
-#   t.integer  "course_id",       null: false, index: {name: "fk__course_lesson_plan_items_course_id"}, foreign_key: {references: "courses", name: "fk_course_lesson_plan_items_course_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "title",           limit: 255,                 null: false
+#   t.string   "actable_type",           :limit=>255, :index=>{:name=>"index_course_lesson_plan_items_on_actable_type_and_actable_id", :with=>["actable_id"], :unique=>true}
+#   t.integer  "course_id",              :null=>false, :index=>{:name=>"fk__course_lesson_plan_items_course_id"}, :foreign_key=>{:references=>"courses", :name=>"fk_course_lesson_plan_items_course_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "title",                  :limit=>255, :null=>false
 #   t.text     "description"
-#   t.boolean  "draft",           default: false, null: false
-#   t.integer  "base_exp",        null: false
-#   t.integer  "time_bonus_exp",  null: false
-#   t.integer  "extra_bonus_exp", null: false
-#   t.datetime "start_at",        null: false
+#   t.boolean  "published",              :default=>false, :null=>false
+#   t.integer  "base_exp",               :null=>false
+#   t.integer  "time_bonus_exp",         :null=>false
+#   t.datetime "start_at",               :null=>false
 #   t.datetime "bonus_end_at"
 #   t.datetime "end_at"
-#   t.integer  "creator_id",      null: false, index: {name: "fk__course_lesson_plan_items_creator_id"}, foreign_key: {references: "users", name: "fk_course_lesson_plan_items_creator_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "updater_id",      null: false, index: {name: "fk__course_lesson_plan_items_updater_id"}, foreign_key: {references: "users", name: "fk_course_lesson_plan_items_updater_id", on_update: :no_action, on_delete: :no_action}
-#   t.datetime "created_at",      null: false
-#   t.datetime "updated_at",      null: false
+#   t.float    "opening_reminder_token"
+#   t.float    "closing_reminder_token"
+#   t.integer  "creator_id",             :null=>false, :index=>{:name=>"fk__course_lesson_plan_items_creator_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_lesson_plan_items_creator_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "updater_id",             :null=>false, :index=>{:name=>"fk__course_lesson_plan_items_updater_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_lesson_plan_items_updater_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.datetime "created_at",             :null=>false
+#   t.datetime "updated_at",             :null=>false
 # end
 #
 # create_table "course_lesson_plan_milestones", force: :cascade do |t|
-#   t.integer  "course_id",   index: {name: "fk__course_lesson_plan_milestones_course_id"}, foreign_key: {references: "courses", name: "fk_course_lesson_plan_milestones_course_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "title",       limit: 255, null: false
+#   t.integer  "course_id",   :index=>{:name=>"fk__course_lesson_plan_milestones_course_id"}, :foreign_key=>{:references=>"courses", :name=>"fk_course_lesson_plan_milestones_course_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "title",       :limit=>255, :null=>false
 #   t.text     "description"
-#   t.datetime "start_at",    null: false
-#   t.integer  "creator_id",  null: false, index: {name: "fk__course_lesson_plan_milestones_creator_id"}, foreign_key: {references: "users", name: "fk_course_lesson_plan_milestones_creator_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "updater_id",  null: false, index: {name: "fk__course_lesson_plan_milestones_updater_id"}, foreign_key: {references: "users", name: "fk_course_lesson_plan_milestones_updater_id", on_update: :no_action, on_delete: :no_action}
-#   t.datetime "created_at",  null: false
-#   t.datetime "updated_at",  null: false
+#   t.datetime "start_at",    :null=>false
+#   t.integer  "creator_id",  :null=>false, :index=>{:name=>"fk__course_lesson_plan_milestones_creator_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_lesson_plan_milestones_creator_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "updater_id",  :null=>false, :index=>{:name=>"fk__course_lesson_plan_milestones_updater_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_lesson_plan_milestones_updater_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.datetime "created_at",  :null=>false
+#   t.datetime "updated_at",  :null=>false
 # end
+
 
 # V1
 # create_table "lesson_plan_entries", :force => true do |t|
