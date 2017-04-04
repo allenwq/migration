@@ -1,7 +1,7 @@
 def transform_assessments(course_ids = [])
   transform_table :assessments,
                   to: ::Course::Assessment,
-                  default_scope: proc { within_courses(course_ids) } do
+                  default_scope: proc { within_courses(course_ids).includes(:as_assessment) } do
     primary_key :id
     column :course_id, to: :course_id, null: false do |old_course_id|
       V1::Source::Course.transform(old_course_id)
@@ -19,23 +19,30 @@ def transform_assessments(course_ids = [])
     column :bonus_exp, to: :time_bonus_exp do |bonus_exp|
       bonus_exp || 0
     end
-    column to: :extra_bonus_exp do
-      0
-    end
     column :open_at, to: :start_at
     column :close_at, to: :end_at
     column :bonus_cutoff_at, to: :bonus_end_at
-    column :published, to: :draft do |published|
-      !published
-    end
-    column to: :display_mode do
+    column :published
+    column to: :autograded do
       if source_record.as_assessment_type == 'Assessment::Training'
-        # TODO: It's false because test cases of coding questions cannot be migrated
-        self.autograded = false
-        :guided
+        true
       elsif source_record.as_assessment_type == 'Assessment::Mission'
-        self.autograded = false
-        :worksheet
+        false
+      end
+    end
+    column to: :skippable do
+      if source_record.as_assessment_type == 'Assessment::Training'
+        source_record.specific.skippable
+      else
+        false
+      end
+    end
+    column to: :tabbed_view do
+      # display_mode_id: 1 = > single page, 2 => tab
+      if source_record.as_assessment_type == 'Assessment::Mission' && source_record.display_mode_id == 2
+        true
+      else
+        false
       end
     end
     column to: :tab_id do
@@ -87,7 +94,6 @@ end
 #   t.boolean  "draft",           default: false, null: false
 #   t.integer  "base_exp",        null: false
 #   t.integer  "time_bonus_exp",  null: false
-#   t.integer  "extra_bonus_exp", null: false
 #   t.datetime "start_at",        null: false
 #   t.datetime "bonus_end_at"
 #   t.datetime "end_at"
@@ -97,15 +103,17 @@ end
 #   t.datetime "updated_at",      null: false
 # end
 
-#
 # create_table "course_assessments", force: :cascade do |t|
-#   t.integer  "tab_id",       null: false, index: {name: "fk__course_assessments_tab_id"}, foreign_key: {references: "course_assessment_tabs", name: "fk_course_assessments_tab_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "display_mode", default: 0, null: false
-#   t.boolean  "autograded",   null: false
-#   t.integer  "creator_id",   null: false, index: {name: "fk__course_assessments_creator_id"}, foreign_key: {references: "users", name: "fk_course_assessments_creator_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "updater_id",   null: false, index: {name: "fk__course_assessments_updater_id"}, foreign_key: {references: "users", name: "fk_course_assessments_updater_id", on_update: :no_action, on_delete: :no_action}
-#   t.datetime "created_at",   null: false
-#   t.datetime "updated_at",   null: false
+#   t.integer  "tab_id",                    :null=>false, :index=>{:name=>"fk__course_assessments_tab_id"}, :foreign_key=>{:references=>"course_assessment_tabs", :name=>"fk_course_assessments_tab_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.boolean  "tabbed_view",               :default=>false, :null=>false
+#   t.boolean  "autograded",                :null=>false
+#   t.boolean  "skippable",                 :default=>false
+#   t.boolean  "delayed_grade_publication", :default=>false
+#   t.string   "password",                  :limit=>255
+#   t.integer  "creator_id",                :null=>false, :index=>{:name=>"fk__course_assessments_creator_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessments_creator_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "updater_id",                :null=>false, :index=>{:name=>"fk__course_assessments_updater_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessments_updater_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.datetime "created_at",                :null=>false
+#   t.datetime "updated_at",                :null=>false
 # end
 
 # V1

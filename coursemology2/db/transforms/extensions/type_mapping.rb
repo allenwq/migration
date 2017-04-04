@@ -1,4 +1,6 @@
 TYPE_MAPPING = {
+  'Assessment::Training' => V1::Source::AssessmentTraining.name,
+  'Assessment::Mission' => V1::Source::AssessmentMission.name,
   'Assessment::McqQuestion' => V1::Source::AssessmentMcqQuestion.name,
   'Assessment::CodingQuestion' => V1::Source::AssessmentCodingQuestion.name,
   'Assessment::GeneralQuestion' => V1::Source::AssessmentGeneralQuestion.name,

@@ -1,8 +1,16 @@
 module V1::Source
   def_model 'tabs'
 
+  def_model 'assessment_missions'
+  def_model 'assessment_trainings'
+
   def_model 'assessments' do
     has_many :file_uploads, as: :owner, inverse_of: nil
+    belongs_to :as_assessment, polymorphic: true, inverse_of: nil
+
+    def specific
+      as_assessment
+    end
   end
 
   ::Course::Assessment.class_eval do
