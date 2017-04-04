@@ -10,8 +10,8 @@ module V1::Source
     end
 
     # Sort the records so that parent is always migrated before child.
-    scope :tsort, ->() do
-      result = all
+    def self.tsort(posts)
+      result = posts
       result.instance_eval do
         extend TSort
 

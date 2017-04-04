@@ -1,7 +1,7 @@
 def transform_forum_posts(course_ids = [])
   transform_table :forum_posts,
                   to: ::Course::Discussion::Post,
-                  default_scope: proc { within_courses(course_ids).tsort } do
+                  default_scope: proc { V1::Source::ForumPost.tsort(within_courses(course_ids)) } do
     primary_key :id
     column to: :parent_id do
       dst_id = V1::Source::ForumPost.transform(source_record.parent_id)
