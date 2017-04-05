@@ -11,6 +11,10 @@ def transform_assessment_mcq_options(course_ids = [])
     end
     column :correct
     column :explanation
+    column to: :weight do
+      # There's no weight in v1, use ID instead
+      source_record.id
+    end
 
     skip_saving_unless_valid
   end
@@ -20,10 +24,11 @@ end
 #
 # V2:
 # create_table "course_assessment_question_multiple_response_options", force: :cascade do |t|
-#   t.integer "question_id", null: false, index: {name: "fk__course_assessment_multiple_response_option_question"}, foreign_key: {references: "course_assessment_question_multiple_responses", name: "fk_course_assessment_question_multiple_response_options_questio", on_update: :no_action, on_delete: :no_action}
-#   t.boolean "correct",     null: false
-#   t.text    "option",      null: false
+#   t.integer "question_id", :null=>false, :index=>{:name=>"fk__course_assessment_multiple_response_option_question"}, :foreign_key=>{:references=>"course_assessment_question_multiple_responses", :name=>"fk_course_assessment_question_multiple_response_options_questio", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.boolean "correct",     :null=>false
+#   t.text    "option",      :null=>false
 #   t.text    "explanation"
+#   t.integer "weight",      :null=>false
 # end
 
 # V1
