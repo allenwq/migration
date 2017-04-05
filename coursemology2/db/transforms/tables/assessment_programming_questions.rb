@@ -1,7 +1,96 @@
 def transform_assessment_programming_questions(course_ids = [])
   transform_table :assessment_coding_questions,
                   to: ::Course::Assessment::Question::Programming,
-                  default_scope: proc { within_courses(course_ids) } do
+                  default_scope: proc { within_courses(course_ids).includes(:assessment_question) } do
+    before_transform do |old, new|
+      # Migrate programming package
+      tests = old.tests.present? ? JSON.parse(old.tests) : {}
+      public_tests = []
+      private_tests = []
+      eval_tests = []
+
+      tests['public'] && tests['public'].each.with_index(1) do |test, index|
+          public_tests << {
+            expected: test['expected'],
+            expression: test['expression']
+          }
+
+          new.test_cases.build(
+            identifier: "test_public_#{format('%02i', index)}",
+            test_case_type: 'public_test',
+            expression: test['expression'],
+            expected: test['expected']
+          )
+      end
+
+      tests['private'] && tests['private'].each.with_index(1) do |test, index|
+        private_tests << {
+          expected: test['expected'],
+          expression: test['expression'],
+          hint: test['hint']
+        }
+
+        new.test_cases.build(
+          identifier: "test_private_#{format('%02i', index)}",
+          test_case_type: 'private_test',
+          expression: test['expression'],
+          expected: test['expected'],
+          hint: test['hint']
+        )
+      end
+
+      tests['eval'] && tests['eval'].each.with_index(1) do |test, index|
+        eval_tests << {
+          expected: test['expected'],
+          expression: test['expression'],
+          hint: test['hint']
+        }
+
+        new.test_cases.build(
+          identifier: "test_evaluation_#{format('%02i', index)}",
+          test_case_type: 'evaluation_test',
+          expression: test['expression'],
+          expected: test['expected'],
+          hint: test['hint']
+        )
+      end
+
+      params = {
+        prepend: old.pre_include,
+        append: old.append_code,
+        submission: old.template,
+        solution: nil,
+        autograded: old.auto_graded,
+        data_files: [],
+        test_cases: {
+          public: public_tests,
+          private: private_tests,
+          evaluation: eval_tests
+        }
+      }
+
+      params = ActionController::Parameters.new(question_programming: params)
+      service = ::Course::Assessment::Question::Programming::Python::PythonPackageService.new(params)
+
+      templates = service.submission_templates
+
+      if old.auto_graded
+        new.file = service.generate_package(nil)
+        new.template_files = templates.map do |template|
+          Course::Assessment::Question::ProgrammingTemplateFile.new(template)
+        end
+      else
+        new.imported_attachment = nil
+        new.import_job_id = nil
+        new.non_autograded_template_files = templates.map do |template|
+          Course::Assessment::Question::ProgrammingTemplateFile.new(template)
+        end
+      end
+
+      new.package_type = :online_editor
+      true
+    end
+
     primary_key :id
     column to: :assessment_id do
       original_assessment_id = source_record.assessment_question.assessments.first.id
@@ -13,7 +102,9 @@ def transform_assessment_programming_questions(course_ids = [])
       self.question.attachment_references = references if references.any?
       description
     end
-    column :staff_comments, to: :staff_only_comments
+    column to: :staff_only_comments do
+      source_record.assessment_question.staff_comments
+    end
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i
     end
@@ -34,10 +125,22 @@ def transform_assessment_programming_questions(course_ids = [])
       end
     end
     column to: :memory_limit do
-      source_record.memory_limit
+      if source_record.memory_limit
+        # 22 is minimal memory required from manual tests.
+        source_record.memory_limit + 22
+      else
+        nil
+      end
     end
     column to: :time_limit do
-      source_record.time_limit
+      if source_record.time_limit && source_record.time_limit <= 30 && source_record.time_limit > 0
+        source_record.time_limit
+      else
+        nil
+      end
+    end
+    column to: :attempt_limit do
+      source_record.assessment_question.attempt_limit
     end
     column to: :creator_id do
       result = V1::Source::User.transform(source_record.assessment_question.creator_id)
@@ -69,10 +172,12 @@ end
 #   t.datetime "updated_at",          :null=>false
 # end
 # create_table "course_assessment_question_programming", force: :cascade do |t|
-#   t.integer "language_id",   null: false, index: {name: "fk__course_assessment_question_programming_language_id"}, foreign_key: {references: "polyglot_languages", name: "fk_course_assessment_question_programming_language_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer "memory_limit",  comment: "Memory limit, in MiB"
-#   t.integer "time_limit",    comment: "Time limit, in seconds"
-#   t.uuid    "import_job_id", comment: "The ID of the importing job", index: {name: "index_course_assessment_question_programming_on_import_job_id", unique: true}, foreign_key: {references: "jobs", name: "fk_course_assessment_question_programming_import_job_id", on_update: :no_action, on_delete: :nullify}
+#   t.integer "language_id",   :null=>false, :index=>{:name=>"fk__course_assessment_question_programming_language_id"}, :foreign_key=>{:references=>"polyglot_languages", :name=>"fk_course_assessment_question_programming_language_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer "memory_limit",  :comment=>"Memory limit, in MiB"
+#   t.integer "time_limit",    :comment=>"Time limit, in seconds"
+#   t.integer "attempt_limit"
+#   t.uuid    "import_job_id", :comment=>"The ID of the importing job", :index=>{:name=>"index_course_assessment_question_programming_on_import_job_id", :unique=>true}, :foreign_key=>{:references=>"jobs", :name=>"fk_course_assessment_question_programming_import_job_id", :on_update=>:no_action, :on_delete=>:nullify}
+#   t.integer "package_type",  :default=>0, :null=>false
 # end
 
 # V1
