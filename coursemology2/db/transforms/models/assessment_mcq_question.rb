@@ -1,4 +1,11 @@
 module V1::Source
+  ::Course::Assessment::Question::MultipleResponse.class_eval do
+    # skip validation
+    raise 'Method removed validate_multiple_choice_has_solution' unless private_instance_methods(false).include?(:validate_multiple_choice_has_solution)
+    def validate_multiple_choice_has_solution
+    end
+  end
+
   def_model 'assessment_mcq_questions' do
     has_one :assessment_question, as: :as_question, inverse_of: nil
 

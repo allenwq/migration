@@ -23,6 +23,7 @@ def transform_assessment_mcq_questions(course_ids = [])
       source_record.assessment_question.question_assessments.first.position || 0
     end
     column to: :grading_scheme do
+      # Select all is MRQ in v1, checkboxes are displayed.
       if source_record.select_all
         :all_correct
       else
