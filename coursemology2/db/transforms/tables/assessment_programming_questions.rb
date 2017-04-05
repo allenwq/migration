@@ -13,6 +13,7 @@ def transform_assessment_programming_questions(course_ids = [])
       self.question.attachment_references = references if references.any?
       description
     end
+    column :staff_comments, to: :staff_only_comments
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i
     end
@@ -20,8 +21,7 @@ def transform_assessment_programming_questions(course_ids = [])
       source_record.assessment_question.question_assessments.first.position || 0
     end
     column to: :title do
-      origin_title = source_record.assessment_question.title
-      origin_title.present? ? origin_title : 'Untitled'
+      source_record.assessment_question.title
     end
     column to: :language_id do
       # V1: 1 => python3.3, 2 => python3.4, 3 => python2.7, 4 => python3.5
@@ -34,10 +34,10 @@ def transform_assessment_programming_questions(course_ids = [])
       end
     end
     column to: :memory_limit do
-      source_record.memory_limit || 0
+      source_record.memory_limit
     end
     column to: :time_limit do
-      source_record.time_limit || 0
+      source_record.time_limit
     end
     column to: :creator_id do
       result = V1::Source::User.transform(source_record.assessment_question.creator_id)
@@ -56,16 +56,17 @@ end
 # V2:
 # create_table "course_assessment_questions", force: :cascade do |t|
 #   t.integer  "actable_id"
-#   t.string   "actable_type",  limit: 255, index: {name: "index_course_assessment_questions_actable", with: ["actable_id"], unique: true}
-#   t.integer  "assessment_id", null: false, index: {name: "fk__course_assessment_questions_assessment_id"}, foreign_key: {references: "course_assessments", name: "fk_course_assessment_questions_assessment_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "title",         limit: 255,             null: false
+#   t.string   "actable_type",        :limit=>255, :index=>{:name=>"index_course_assessment_questions_actable", :with=>["actable_id"], :unique=>true}
+#   t.integer  "assessment_id",       :null=>false, :index=>{:name=>"fk__course_assessment_questions_assessment_id"}, :foreign_key=>{:references=>"course_assessments", :name=>"fk_course_assessment_questions_assessment_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "title",               :limit=>255
 #   t.text     "description"
-#   t.integer  "maximum_grade", null: false
-#   t.integer  "weight",        default: 0, null: false
-#   t.integer  "creator_id",    null: false, index: {name: "fk__course_assessment_questions_creator_id"}, foreign_key: {references: "users", name: "fk_course_assessment_questions_creator_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "updater_id",    null: false, index: {name: "fk__course_assessment_questions_updater_id"}, foreign_key: {references: "users", name: "fk_course_assessment_questions_updater_id", on_update: :no_action, on_delete: :no_action}
-#   t.datetime "created_at",    null: false
-#   t.datetime "updated_at",    null: false
+#   t.text     "staff_only_comments"
+#   t.decimal  "maximum_grade",       :precision=>4, :scale=>1, :null=>false
+#   t.integer  "weight",              :null=>false
+#   t.integer  "creator_id",          :null=>false, :index=>{:name=>"fk__course_assessment_questions_creator_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessment_questions_creator_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "updater_id",          :null=>false, :index=>{:name=>"fk__course_assessment_questions_updater_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessment_questions_updater_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.datetime "created_at",          :null=>false
+#   t.datetime "updated_at",          :null=>false
 # end
 # create_table "course_assessment_question_programming", force: :cascade do |t|
 #   t.integer "language_id",   null: false, index: {name: "fk__course_assessment_question_programming_language_id"}, foreign_key: {references: "polyglot_languages", name: "fk_course_assessment_question_programming_language_id", on_update: :no_action, on_delete: :no_action}

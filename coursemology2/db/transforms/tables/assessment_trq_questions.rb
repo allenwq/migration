@@ -8,8 +8,7 @@ def transform_assessment_trq_questions(course_ids = [])
       V1::Source::Assessment.transform(original_assessment_id)
     end
     column to: :title do
-      origin_title = source_record.assessment_question.title
-      origin_title.present? ? origin_title : 'Untitled'
+      source_record.assessment_question.title
     end
     column to: :description do
       description = ContentParser.parse_mc_tags(source_record.assessment_question.description)
@@ -17,6 +16,7 @@ def transform_assessment_trq_questions(course_ids = [])
       self.question.attachment_references = references if references.any?
       description
     end
+    column :staff_comments, to: :staff_only_comments
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i
     end
@@ -40,16 +40,17 @@ end
 # V2:
 # create_table "course_assessment_questions", force: :cascade do |t|
 #   t.integer  "actable_id"
-#   t.string   "actable_type",  limit: 255, index: {name: "index_course_assessment_questions_actable", with: ["actable_id"], unique: true}
-#   t.integer  "assessment_id", null: false, index: {name: "fk__course_assessment_questions_assessment_id"}, foreign_key: {references: "course_assessments", name: "fk_course_assessment_questions_assessment_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "title",         limit: 255,             null: false
+#   t.string   "actable_type",        :limit=>255, :index=>{:name=>"index_course_assessment_questions_actable", :with=>["actable_id"], :unique=>true}
+#   t.integer  "assessment_id",       :null=>false, :index=>{:name=>"fk__course_assessment_questions_assessment_id"}, :foreign_key=>{:references=>"course_assessments", :name=>"fk_course_assessment_questions_assessment_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "title",               :limit=>255
 #   t.text     "description"
-#   t.integer  "maximum_grade", null: false
-#   t.integer  "weight",        default: 0, null: false
-#   t.integer  "creator_id",    null: false, index: {name: "fk__course_assessment_questions_creator_id"}, foreign_key: {references: "users", name: "fk_course_assessment_questions_creator_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "updater_id",    null: false, index: {name: "fk__course_assessment_questions_updater_id"}, foreign_key: {references: "users", name: "fk_course_assessment_questions_updater_id", on_update: :no_action, on_delete: :no_action}
-#   t.datetime "created_at",    null: false
-#   t.datetime "updated_at",    null: false
+#   t.text     "staff_only_comments"
+#   t.decimal  "maximum_grade",       :precision=>4, :scale=>1, :null=>false
+#   t.integer  "weight",              :null=>false
+#   t.integer  "creator_id",          :null=>false, :index=>{:name=>"fk__course_assessment_questions_creator_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessment_questions_creator_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "updater_id",          :null=>false, :index=>{:name=>"fk__course_assessment_questions_updater_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessment_questions_updater_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.datetime "created_at",          :null=>false
+#   t.datetime "updated_at",          :null=>false
 # end
 # create_table "course_assessment_question_text_responses", force: :cascade do |t|
 # end
