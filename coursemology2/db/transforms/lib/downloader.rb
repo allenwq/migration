@@ -45,7 +45,7 @@ class Downloader
         )
       elsif local_file = download_proc.call
         attachment = ::Attachment.find_or_initialize_by(file: local_file)
-        attachment.save!
+        attachment.save! unless attachment.persisted?
         local_file.close unless local_file.closed?
         reference = ::AttachmentReference.new(attachment: attachment)
         reference.name = name
