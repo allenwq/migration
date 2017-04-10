@@ -116,18 +116,22 @@ def transform_assessment_programming_questions(course_ids = [])
     end
     column to: :language_id do
       # V1: 1 => python3.3, 2 => python3.4, 3 => python2.7, 4 => python3.5
-      # V2: 1 => python2.7, 2 => python3.4
+      # V2: 1 => JavaScript, 2 => Python 2.7, 3=>Python 3.4, 4=>Python 3.5, 5=>Python 3.6, 6=>C/C++
       case source_record.language_id
+      when 1, 2
+        3
       when 3
-        1
-      else
         2
+      when 4
+        4
+      else
+        5
       end
     end
     column to: :memory_limit do
       if source_record.memory_limit
-        # 22 is minimal memory required from manual tests.
-        source_record.memory_limit + 22
+        # 22 is minimal memory required from manual tests, use 25 for safe.
+        source_record.memory_limit + 25
       else
         nil
       end

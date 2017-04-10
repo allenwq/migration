@@ -16,7 +16,6 @@ def transform_assessment_trq_questions(course_ids = [])
       self.question.attachment_references = references if references.any?
       description
     end
-    column :staff_comments, to: :staff_only_comments
     column to: :maximum_grade do
       source_record.assessment_question.max_grade.to_i
     end
