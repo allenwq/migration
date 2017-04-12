@@ -55,13 +55,26 @@ def transform_assessment_programming_questions(course_ids = [])
         )
       end
 
+      data_files = []
+      # Find the orignal assessment
+      origin_assessment = old.assessment
+      origin_assessment && origin_assessment.file_uploads.each do |file|
+        next if file.original_name.end_with?('.pdf')
+
+        local_file = file.download_to_local
+        tmp_file = Rack::Test::UploadedFile.new(local_file.path)
+        # The default name is a random hash
+        tmp_file.instance_variable_set(:@original_filename, file.original_name)
+        local_file.close
+        data_files << tmp_file
+      end
       params = {
         prepend: old.pre_include,
         append: old.append_code,
         submission: old.template,
         solution: nil,
         autograded: old.auto_graded,
-        data_files: [],
+        data_files: data_files,
         test_cases: {
           public: public_tests,
           private: private_tests,
@@ -88,6 +101,7 @@ def transform_assessment_programming_questions(course_ids = [])
       end
 
       new.package_type = :online_editor
+      data_files.each(&:close)
       true
     end
 
@@ -130,8 +144,8 @@ def transform_assessment_programming_questions(course_ids = [])
     end
     column to: :memory_limit do
       if source_record.memory_limit
-        # 22 is minimal memory required from manual tests, use 25 for safe.
-        source_record.memory_limit + 25
+        # 22 - 28 is minimal memory required from manual tests, use 30 for safe.
+        source_record.memory_limit + 30
       else
         nil
       end

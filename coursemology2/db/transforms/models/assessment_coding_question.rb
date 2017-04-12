@@ -1,8 +1,8 @@
 module V1::Source
   ::Course::Assessment::Question::Programming.class_eval do
     # Disable package processing
-    raise 'Method removed process_new_package' unless private_instance_methods(false).include?(:process_new_package)
-    def process_new_package
+    raise 'Method removed process_new_package' unless private_instance_methods(false).include?(:process_package)
+    def process_package
     end
   end
 
@@ -20,6 +20,11 @@ module V1::Source
             }
           }
         )
+    end
+
+    def assessment
+      @assessment ||=
+        assessment_question.assessments.first
     end
   end
 end
