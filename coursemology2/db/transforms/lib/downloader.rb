@@ -4,6 +4,10 @@ class Downloader
   class << self
     # Download the url to local and return an open file. nil will be returned if failed.
     def download_to_local(url, object, file_name = nil)
+      if path = $url_mapper.get_file_path(url)
+        return File.open(path) if File.exist?(path)
+      end
+
       dir = download_dir(object)
       FileUtils.mkdir_p(dir) unless File.exist?(dir)
 
@@ -29,6 +33,7 @@ class Downloader
         end
       end
 
+      $url_mapper.set_file_path(url, local_file_path)
       local_file
     end
 
@@ -49,7 +54,9 @@ class Downloader
         local_file.close unless local_file.closed?
         reference = ::AttachmentReference.new(attachment: attachment)
         reference.name = name
-        $url_mapper.set(url, reference.attachment.name, reference.url)
+
+        $url_mapper.set_hash(url, reference.attachment.name)
+        $url_mapper.set_v2_url(url, reference.url)
       end
 
       reference
@@ -61,7 +68,7 @@ class Downloader
       File.join(LOCAL_DIR, object.class.table_name, object.primary_key_value.to_s)
     end
 
-    # Url is must be a S3 url
+    # Url must be a S3 url
     def name_from_url(url)
       return '' unless url.present?
       start = url.index('original/') + 'original/'.length
