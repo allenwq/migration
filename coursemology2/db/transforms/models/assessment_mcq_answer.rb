@@ -2,10 +2,11 @@ module V1::Source
   def_model 'assessment_mcq_answers' do
     has_one :assessment_answer, as: :as_answer, inverse_of: nil
     delegate :submission_id, :question_id, :std_course_id, :content, :finalised, :correct,
-             :assessment_answer_grading, :assessment_submission, to: :assessment_answer
+             :assessment_answer_grading, :assessment_submission, :transform_workflow_state,
+             :transform_created_at, to: :assessment_answer
 
     scope :with_eager_load, ->() do
-      includes({ assessment_answer: [:std_course, :assessment_question, :assessment_answer_grading]})
+      includes({ assessment_answer: [:std_course, :assessment_question, :assessment_answer_grading, assessment_submission: :assessment]})
     end
 
     scope :within_courses, ->(course_ids) do
@@ -19,6 +20,7 @@ module V1::Source
             }
           }
         )
+      # joins(:assessment_answer).where({assessment_answer: {submission_id: 167981}})
     end
 
     # Find the destination question_id through `AssessmentMcqQuestion` mapping
@@ -28,20 +30,6 @@ module V1::Source
       ::Course::Assessment::Question.
         find_by(actable_id: dst_mcq_id,
                 actable_type: ::Course::Assessment::Question::MultipleResponse.name).try(:id)
-    end
-
-    def transform_workflow_state
-      # state :attempting
-      # state :submitted
-      # state :graded
-      case assessment_submission.status
-      when 'graded'
-        :graded
-      when 'submitted'
-        :submitted
-      else
-        :attempting
-      end
     end
   end
 

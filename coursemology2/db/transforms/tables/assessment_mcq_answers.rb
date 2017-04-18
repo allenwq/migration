@@ -10,10 +10,6 @@ def transform_assessment_mcq_answers(course_ids = [])
       source_record.transform_question_id
     end
 
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
-    end
-
     column to: :workflow_state do
       source_record.transform_workflow_state
     end
@@ -51,6 +47,12 @@ def transform_assessment_mcq_answers(course_ids = [])
         end
       end
     end
+    column :updated_at
+    column to: :created_at do
+      time = source_record.transform_created_at
+      acting_as.created_at = time
+      time
+    end
 
     skip_saving_unless_valid
   end
@@ -61,15 +63,17 @@ end
 # V2:
 # create_table "course_assessment_answers", force: :cascade do |t|
 #   t.integer  "actable_id"
-#   t.string   "actable_type",   limit: 255, index: {name: "index_course_assessment_answers_actable", with: ["actable_id"], unique: true}
-#   t.integer  "submission_id",  null: false, index: {name: "fk__course_assessment_answers_submission_id"}, foreign_key: {references: "course_assessment_submissions", name: "fk_course_assessment_answers_submission_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "question_id",    null: false, index: {name: "fk__course_assessment_answers_question_id"}, foreign_key: {references: "course_assessment_questions", name: "fk_course_assessment_answers_question_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "workflow_state", limit: 255, null: false
+#   t.string   "actable_type",   :limit=>255, :index=>{:name=>"index_course_assessment_answers_actable", :with=>["actable_id"], :unique=>true}
+#   t.integer  "submission_id",  :null=>false, :index=>{:name=>"fk__course_assessment_answers_submission_id"}, :foreign_key=>{:references=>"course_assessment_submissions", :name=>"fk_course_assessment_answers_submission_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "question_id",    :null=>false, :index=>{:name=>"fk__course_assessment_answers_question_id"}, :foreign_key=>{:references=>"course_assessment_questions", :name=>"fk_course_assessment_answers_question_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "workflow_state", :limit=>255, :null=>false
 #   t.datetime "submitted_at"
-#   t.integer  "grade"
-#   t.boolean  "correct",        comment: "Correctness is independent of the grade (depends on the grading schema)"
-#   t.integer  "grader_id",      index: {name: "fk__course_assessment_answers_grader_id"}, foreign_key: {references: "users", name: "fk_course_assessment_answers_grader_id", on_update: :no_action, on_delete: :no_action}
+#   t.decimal  "grade",          :precision=>4, :scale=>1
+#   t.boolean  "correct",        :comment=>"Correctness is independent of the grade (depends on the grading schema)"
+#   t.integer  "grader_id",      :index=>{:name=>"fk__course_assessment_answers_grader_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessment_answers_grader_id", :on_update=>:no_action, :on_delete=>:no_action}
 #   t.datetime "graded_at"
+#   t.datetime "created_at",     :null=>false
+#   t.datetime "updated_at",     :null=>false
 # end
 # create_table "course_assessment_answer_multiple_responses", force: :cascade do |t|
 # end
