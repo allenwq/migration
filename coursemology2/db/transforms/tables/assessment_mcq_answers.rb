@@ -6,34 +6,11 @@ def transform_assessment_mcq_answers(course_ids = [])
     column to: :submission_id do
       V1::Source::AssessmentSubmission.transform(source_record.submission_id)
     end
-    column to: :question_id do
-      source_record.transform_question_id
-    end
-
-    column to: :workflow_state do
-      source_record.transform_workflow_state
-    end
-
-    column to: :submitted_at do
-      if !attempting?
-        source_record.updated_at
-      else
-        nil
-      end
-    end
-    column to: :grade do
-      if graded?
-        grade = source_record.assessment_answer_grading.try(:grade)
-        if grade
-          grade.to_i
-        else
-          source_record.correct ? source_record.assessment_answer.assessment_question.max_grade : 0
-        end
-      end
-    end
-    column to: :correct do
-      source_record.correct
-    end
+    column :transform_question_id, to: :question_id
+    column :transform_workflow_state, to: :workflow_state
+    column :transform_submitted_at, to: :submitted_at
+    column :transform_grade, to: :grade
+    column :correct
     column to: :grader_id do
       if graded?
         id = nil
@@ -43,21 +20,11 @@ def transform_assessment_mcq_answers(course_ids = [])
         id || User::SYSTEM_USER_ID
       end
     end
-    column to: :graded_at do
-      if graded?
-        if source_record.assessment_answer_grading
-          source_record.assessment_answer_grading.created_at
-        else
-          source_record.created_at
-        end
-      end
+    column :transform_graded_at, to: :graded_at
+    column to: :updated_at do
+      source_record.assessment_answer.updated_at
     end
-    column :updated_at
-    column to: :created_at do
-      time = source_record.transform_created_at
-      acting_as.created_at = time
-      time
-    end
+    column :transform_created_at, to: :created_at
 
     skip_saving_unless_valid
   end

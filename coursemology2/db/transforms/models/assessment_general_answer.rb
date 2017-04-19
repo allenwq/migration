@@ -1,9 +1,11 @@
 module V1::Source
   def_model 'assessment_general_answers' do
     has_one :assessment_answer, as: :as_answer, inverse_of: nil
-    delegate :submission_id, :question_id, :std_course_id, :content, :finalised, :correct,
-             :assessment_answer_grading, :assessment_submission, :transform_workflow_state,
-             :transform_created_at, to: :assessment_answer
+
+    def method_missing(method, *args)
+      return assessment_answer.send(method, *args) if assessment_answer.respond_to?(method)
+      super
+    end
 
     scope :with_eager_load, ->() do
       includes({ assessment_answer: [:std_course, :assessment_question, :assessment_answer_grading, assessment_submission: :assessment]})

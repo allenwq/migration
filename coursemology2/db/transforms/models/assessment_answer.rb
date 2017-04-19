@@ -53,22 +53,53 @@ module V1::Source
     # state :evaluated
     # state :graded
     def transform_workflow_state
-      assessment = assessment_submission.assessment
-      if assessment.as_assessment_type == 'Assessment::Training'
-        if answers_of_same_question.size > 1 && id != latest_answer.id
-          # For trainings, all previous answers should be graded.
-          return :graded
+      @workflow_state ||= begin
+        assessment = assessment_submission.assessment
+        if assessment.as_assessment_type == 'Assessment::Training'
+          if answers_of_same_question.size > 1 && id != latest_answer.id
+            # For trainings, all previous answers should be graded.
+            return :graded
+          end
+        end
+
+        # Code goes here for missions and trainings with only one answer
+        case assessment_submission.status
+        when 'graded'
+          :graded
+        when 'submitted'
+          :submitted
+        else
+          :attempting
         end
       end
+    end
 
-      # Code goes here for missions and trainings with only one answer
-      case assessment_submission.status
-      when 'graded'
-        :graded
-      when 'submitted'
-        :submitted
+    def transform_grade
+      if transform_workflow_state == :graded
+        grade = assessment_answer_grading.try(:grade)
+        if grade
+          grade.to_i
+        else
+          correct ? assessment_question.max_grade : 0
+        end
+      end
+    end
+
+    def transform_submitted_at
+      if transform_workflow_state != :attempting
+        updated_at
       else
-        :attempting
+        nil
+      end
+    end
+
+    def transform_graded_at
+      if transform_workflow_state == :graded
+        if assessment_answer_grading
+          assessment_answer_grading.created_at
+        else
+          created_at
+        end
       end
     end
 
