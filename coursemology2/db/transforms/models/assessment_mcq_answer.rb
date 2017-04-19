@@ -20,7 +20,6 @@ module V1::Source
             }
           }
         )
-      # joins(:assessment_answer).where({assessment_answer: {submission_id: 167981}})
     end
 
     # Find the destination question_id through `AssessmentMcqQuestion` mapping

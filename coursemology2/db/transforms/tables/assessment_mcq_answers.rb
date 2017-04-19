@@ -22,8 +22,13 @@ def transform_assessment_mcq_answers(course_ids = [])
       end
     end
     column to: :grade do
-      if graded? || submitted?
-        source_record.assessment_answer_grading.try(:grade).to_i
+      if graded?
+        grade = source_record.assessment_answer_grading.try(:grade)
+        if grade
+          grade.to_i
+        else
+          source_record.correct ? source_record.assessment_answer.assessment_question.max_grade : 0
+        end
       end
     end
     column to: :correct do
@@ -43,7 +48,7 @@ def transform_assessment_mcq_answers(course_ids = [])
         if source_record.assessment_answer_grading
           source_record.assessment_answer_grading.created_at
         else
-          Time.zone.now
+          source_record.created_at
         end
       end
     end
