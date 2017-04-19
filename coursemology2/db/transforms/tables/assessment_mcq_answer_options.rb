@@ -10,7 +10,7 @@ def transform_assessment_mcq_answer_options(course_ids = [])
       V1::Source::AssessmentMcqOption.transform(source_record.option_id)
     end
 
-    skip_saving_unless_valid
+    save validate: false
   end
 end
 
