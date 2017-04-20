@@ -2,6 +2,23 @@ def transform_levels(course_ids = [])
   transform_table :levels,
                   to: ::Course::Level,
                   default_scope: proc { within_courses(course_ids) } do
+
+    before_transform do |old|
+      if old.exp_threshold == 0
+        # No need to transform as there's already a default level
+        new_course_id = V1::Source::Course.transform(old.course_id)
+        new_lvl = ::Course::Level.find_by(course_id: new_course_id, experience_points_threshold: 0)
+        if new_lvl
+          new_lvl.update_columns(updated_at: old.updated_at, created_at: old.created_at)
+          false
+        else
+          true
+        end
+      else
+        true
+      end
+    end
+
     primary_key :id
     column :course_id, to: :course_id do |course_id|
       V1::Source::Course.transform(course_id)
