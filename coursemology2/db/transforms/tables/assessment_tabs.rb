@@ -11,8 +11,8 @@ def transform_assessment_tabs(course_ids = [])
       new_course = Course.find(V1::Source::Course.transform(source_record.course_id))
       raise 'Category count invalid' if new_course.assessment_categories.count != 2
 
+      # Delete the default tabs because when the code goes here there's at least 1 tab.
       if source_record.owner_type == 'Assessment::Training'
-        # TODO: This is a hack for deleting the default category
         # Unscope weight
         new_course.assessment_categories.unscope(:order).first.tabs.where(title: 'Default').delete_all
         new_course.assessment_categories.unscope(:order).first.id
