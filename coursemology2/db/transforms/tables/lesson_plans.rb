@@ -15,6 +15,13 @@ def transform_lesson_plans(course_ids = [])
       result
     end
 
+    column to: :created_at do
+      Time.zone.now
+    end
+    column to: :updated_at do
+      Time.zone.now
+    end
+
     skip_saving_unless_valid
   end
 
@@ -40,6 +47,13 @@ def transform_lesson_plans(course_ids = [])
       result = V1::Source::User.transform(source_record.creator_id)
       self.updater_id = result
       result
+    end
+
+    column to: :created_at do
+      Time.zone.now
+    end
+    column to: :updated_at do
+      Time.zone.now
     end
 
     skip_saving_unless_valid
