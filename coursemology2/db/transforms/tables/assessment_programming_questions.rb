@@ -8,6 +8,7 @@ def transform_assessment_programming_questions(course_ids = [])
       public_tests = []
       private_tests = []
       eval_tests = []
+      identifer_prefix = 'AutoGrader/AutoGrader/'
 
       tests['public'] && tests['public'].each.with_index(1) do |test, index|
           public_tests << {
@@ -16,7 +17,7 @@ def transform_assessment_programming_questions(course_ids = [])
           }
 
           new.test_cases.build(
-            identifier: "test_public_#{format('%02i', index)}",
+            identifier: "#{identifer_prefix}test_public_#{format('%02i', index)}",
             test_case_type: 'public_test',
             expression: test['expression'],
             expected: test['expected']
@@ -31,7 +32,7 @@ def transform_assessment_programming_questions(course_ids = [])
         }
 
         new.test_cases.build(
-          identifier: "test_private_#{format('%02i', index)}",
+          identifier: "#{identifer_prefix}test_private_#{format('%02i', index)}",
           test_case_type: 'private_test',
           expression: test['expression'],
           expected: test['expected'],
@@ -47,7 +48,7 @@ def transform_assessment_programming_questions(course_ids = [])
         }
 
         new.test_cases.build(
-          identifier: "test_evaluation_#{format('%02i', index)}",
+          identifier: "#{identifer_prefix}test_evaluation_#{format('%02i', index)}",
           test_case_type: 'evaluation_test',
           expression: test['expression'],
           expected: test['expected'],
@@ -144,8 +145,8 @@ def transform_assessment_programming_questions(course_ids = [])
     end
     column to: :memory_limit do
       if source_record.memory_limit
-        # 22 - 28 is minimal memory required from manual tests, use 30 for safe.
-        source_record.memory_limit + 30
+        # 22 - 50 is minimal memory required from manual tests, use 50 for safe.
+        source_record.memory_limit + 50
       else
         nil
       end
