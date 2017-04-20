@@ -31,6 +31,14 @@ def transform_courses(ids = [])
     column :updated_at
     column :created_at
 
+    before_save do |old, new|
+      new.root_folder.created_at = old.root_folder.created_at || old.created_at
+      new.root_folder.updated_at = old.root_folder.updated_at || old.created_at
+      level = new.levels.first
+      level.created_at = old.created_at
+      level.updated_at = old.updated_at
+    end
+
     skip_saving_unless_valid
   end
 end
@@ -63,6 +71,16 @@ def build_assessment_categories(source, destination)
     created_at: mission_pref.created_at,
     updated_at: mission_pref.updated_at
   )
+
+  [default_category, mission_category].each do |cat|
+    cat.folder.created_at = cat.created_at
+    cat.folder.updated_at = cat.updated_at
+
+    tab = cat.tabs.first
+    tab.created_at = cat.created_at
+    tab.updated_at = cat.updated_at
+  end
+
   [default_category, mission_category]
 end
 

@@ -19,6 +19,10 @@ module V1::Source
         Downloader.download_to_local(logo_url, self)
       end
     end
+
+    def root_folder
+      @root_folder ||= MaterialFolder.find_by(course_id: id, parent_folder_id: nil)
+    end
   end
 
   # Don't enroll creator in the course
