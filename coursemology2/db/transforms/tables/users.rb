@@ -3,6 +3,10 @@ def transform_users
     before_transform do |old|
       v2_email = User::Email.find_by(email: old.email)
       if v2_email
+        # Correct the confirmed at
+        if v2_email.confirmed_at.present? && old.confirmed_at.present? && old.confirmed_at < v2_email.confirmed_at
+          v2_email.update_column(:confirmed_at, old.confirmed_at)
+        end
         V1::Source::User.memoize_transform(old.id, v2_email.user_id)
         false
       else
@@ -15,7 +19,7 @@ def transform_users
     column :email do |old_email|
       self.email = old_email
       if source_record.confirmed_at.present?
-        skip_confirmation!
+        primary_email_record.confirmed_at = source_record.confirmed_at
       else
         skip_confirmation_notification!
       end
@@ -45,7 +49,10 @@ def transform_users
     column :uid do
       if source_record.uid.present? && source_record.provider == 'facebook'
         auth = { provider: 'facebook', uid: source_record.uid }
-        link_with_omniauth(auth)
+        # The check is for that some users are migrated to v2 and changed their email
+        if User::Identity.where(auth).count == 0
+          link_with_omniauth(auth)
+        end
       end
     end
     column to: :time_zone do
