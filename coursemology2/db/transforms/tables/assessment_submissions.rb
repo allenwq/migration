@@ -59,8 +59,14 @@ def transform_assessment_submissions(course_ids = [])
       self.updater_id = result
       result
     end
-    column :updated_at
-    column :created_at
+    column :updated_at, to: :updated_at do |old|
+      acting_as.updated_at = old
+      old
+    end
+    column :created_at, to: :created_at do |old|
+      acting_as.created_at = old
+      old
+    end
 
     skip_saving_unless_valid
   end
