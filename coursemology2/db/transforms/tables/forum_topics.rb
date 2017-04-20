@@ -20,8 +20,14 @@ def transform_forum_topics(course_ids = [])
       self.updater_id = result
       result
     end
-    column :created_at
-    column :updated_at
+    column :created_at, to: :created_at do |old|
+      discussion_topic.created_at = old
+      old
+    end
+    column :updated_at, to: :updated_at do |old|
+      discussion_topic.updated_at = old
+      old
+    end
 
     skip_saving_unless_valid
   end
@@ -44,8 +50,12 @@ end
 # end
 #
 # create_table "course_discussion_topics", force: :cascade do |t|
-#   t.integer "actable_id"
-#   t.string  "actable_type", limit: 255, index: {name: "index_course_discussion_topics_on_actable_type_and_actable_id", with: ["actable_id"], unique: true}
+#   t.integer  "actable_id"
+#   t.string   "actable_type",        :limit=>255, :index=>{:name=>"index_course_discussion_topics_on_actable_type_and_actable_id", :with=>["actable_id"], :unique=>true}
+#   t.integer  "course_id",           :null=>false, :index=>{:name=>"fk__course_discussion_topics_course_id"}, :foreign_key=>{:references=>"courses", :name=>"fk_course_discussion_topics_course_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.boolean  "pending_staff_reply", :default=>false, :null=>false
+#   t.datetime "created_at",          :null=>false
+#   t.datetime "updated_at",          :null=>false
 # end
 # create_table "course_discussion_topic_subscriptions", force: :cascade do |t|
 #   t.integer "topic_id", null: false, index: {name: "fk__course_discussion_topic_subscriptions_topic_id"}, foreign_key: {references: "course_discussion_topics", name: "fk_course_discussion_topic_subscriptions_topic_id", on_update: :no_action, on_delete: :no_action}

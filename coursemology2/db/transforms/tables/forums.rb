@@ -9,6 +9,14 @@ def transform_forums(course_ids = [])
     column :name
     column :description
 
+    column to: :created_at do
+      Time.zone.now
+    end
+
+    column to: :updated_at do
+      Time.zone.now
+    end
+
     skip_saving_unless_valid
   end
 end
