@@ -1,11 +1,14 @@
 module V1::Source
   def_model 'assessment_coding_answers' do
     has_one :assessment_answer, as: :as_answer, inverse_of: nil
-    delegate :submission_id, :question_id, :std_course_id, :content, :finalised, :correct,
-             :assessment_answer_grading, :assessment_submission, to: :assessment_answer
+
+    def method_missing(method, *args)
+      return assessment_answer.send(method, *args) if assessment_answer.respond_to?(method)
+      super
+    end
 
     scope :with_eager_load, ->() do
-      includes({ assessment_answer: [:std_course, :assessment_question, :assessment_answer_grading, :assessment_submission]})
+      includes({ assessment_answer: [:std_course, :assessment_question, :assessment_answer_grading, assessment_submission: :assessment]})
     end
 
     scope :within_courses, ->(course_ids) do
@@ -19,20 +22,6 @@ module V1::Source
             }
           }
         )
-    end
-
-    def transform_workflow_state
-      # state :attempting
-      # state :submitted
-      # state :graded
-      case assessment_submission.status
-      when 'graded'
-        :graded
-      when 'submitted'
-        :submitted
-      else
-        :attempting
-      end
     end
 
     # Find the destination question_id through `AssessmentMcqQuestion` mapping

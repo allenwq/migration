@@ -116,7 +116,7 @@ module V1::Source
 
     def answers_of_same_question
       @answers ||= self.class.where(question_id: question_id, submission_id: submission_id).
-        includes(:assessment_answer_grading)
+        includes(:assessment_answer_grading).to_a
     end
 
     # Return the latest answer of this question and submission

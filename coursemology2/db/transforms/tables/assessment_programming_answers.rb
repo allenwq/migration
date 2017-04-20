@@ -6,37 +6,11 @@ def transform_assessment_programming_answers(course_ids = [])
     column to: :submission_id do
       V1::Source::AssessmentSubmission.transform(source_record.submission_id)
     end
-
-    column to: :question_id do
-      source_record.transform_question_id
-    end
-
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
-    end
-
-    column to: :workflow_state do
-      source_record.transform_workflow_state
-    end
-
-    column to: :submitted_at do
-      if !attempting?
-        source_record.updated_at
-      else
-        nil
-      end
-    end
-
-    column to: :grade do
-      if graded? || submitted?
-        source_record.assessment_answer_grading.try(:grade).to_i
-      end
-    end
-
-    column to: :correct do
-      source_record.correct
-    end
-
+    column :transform_question_id, to: :question_id
+    column :transform_workflow_state, to: :workflow_state
+    column :transform_submitted_at, to: :submitted_at
+    column :transform_grade, to: :grade
+    column :correct
     column to: :grader_id do
       if graded?
         id = nil
@@ -46,20 +20,15 @@ def transform_assessment_programming_answers(course_ids = [])
         id || User::SYSTEM_USER_ID
       end
     end
-
-    column to: :graded_at do
-      if graded?
-        if source_record.assessment_answer_grading
-          source_record.assessment_answer_grading.created_at
-        else
-          Time.zone.now
-        end
-      end
+    column :transform_graded_at, to: :graded_at
+    column to: :updated_at do
+      source_record.assessment_answer.updated_at
     end
+    column :transform_created_at, to: :created_at
 
     column :content do |content|
       # There are strings ends with "\u0000" which result in a postgres error.
-      self.files.build(filename: 'solution.py', content: content.sub("\u0000", '')) if content.present?
+      self.files.build(filename: 'template.py', content: content.sub("\u0000", '')) if content.present?
     end
 
     skip_saving_unless_valid
@@ -71,15 +40,17 @@ end
 # V2:
 # create_table "course_assessment_answers", force: :cascade do |t|
 #   t.integer  "actable_id"
-#   t.string   "actable_type",   limit: 255, index: {name: "index_course_assessment_answers_actable", with: ["actable_id"], unique: true}
-#   t.integer  "submission_id",  null: false, index: {name: "fk__course_assessment_answers_submission_id"}, foreign_key: {references: "course_assessment_submissions", name: "fk_course_assessment_answers_submission_id", on_update: :no_action, on_delete: :no_action}
-#   t.integer  "question_id",    null: false, index: {name: "fk__course_assessment_answers_question_id"}, foreign_key: {references: "course_assessment_questions", name: "fk_course_assessment_answers_question_id", on_update: :no_action, on_delete: :no_action}
-#   t.string   "workflow_state", limit: 255, null: false
+#   t.string   "actable_type",   :limit=>255, :index=>{:name=>"index_course_assessment_answers_actable", :with=>["actable_id"], :unique=>true}
+#   t.integer  "submission_id",  :null=>false, :index=>{:name=>"fk__course_assessment_answers_submission_id"}, :foreign_key=>{:references=>"course_assessment_submissions", :name=>"fk_course_assessment_answers_submission_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.integer  "question_id",    :null=>false, :index=>{:name=>"fk__course_assessment_answers_question_id"}, :foreign_key=>{:references=>"course_assessment_questions", :name=>"fk_course_assessment_answers_question_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "workflow_state", :limit=>255, :null=>false
 #   t.datetime "submitted_at"
-#   t.integer  "grade"
-#   t.boolean  "correct",        comment: "Correctness is independent of the grade (depends on the grading schema)"
-#   t.integer  "grader_id",      index: {name: "fk__course_assessment_answers_grader_id"}, foreign_key: {references: "users", name: "fk_course_assessment_answers_grader_id", on_update: :no_action, on_delete: :no_action}
+#   t.decimal  "grade",          :precision=>4, :scale=>1
+#   t.boolean  "correct",        :comment=>"Correctness is independent of the grade (depends on the grading schema)"
+#   t.integer  "grader_id",      :index=>{:name=>"fk__course_assessment_answers_grader_id"}, :foreign_key=>{:references=>"users", :name=>"fk_course_assessment_answers_grader_id", :on_update=>:no_action, :on_delete=>:no_action}
 #   t.datetime "graded_at"
+#   t.datetime "created_at",     :null=>false
+#   t.datetime "updated_at",     :null=>false
 # end
 # create_table "course_assessment_answer_programming", force: :cascade do |t|
 # end
