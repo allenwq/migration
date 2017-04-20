@@ -57,11 +57,22 @@ def transform_assessments(course_ids = [])
     column :file_uploads do |file_uploads|
       file_uploads.visible.each do |file|
         attachment = file.transform_attachment_reference
-        folder.materials.build(attachment_reference: attachment, name: attachment.name) if attachment
+        if attachment
+          folder.materials.build(attachment_reference: attachment, name: attachment.name,
+                                 created_at: file.created_at, updated_at: file.updated_at)
+        end
       end
     end
-    column :updated_at, null: false
-    column :created_at, null: false
+    column :updated_at, to: :updated_at do |old|
+      lesson_plan_item.updated_at = old
+      folder.updated_at = old
+      old
+    end
+    column :created_at, to: :created_at do |old|
+      lesson_plan_item.created_at = old
+      folder.created_at = old
+      old
+    end
 
     skip_saving_unless_valid
   end
