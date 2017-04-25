@@ -15,11 +15,8 @@ module V1::Source
     end
 
     def transform_topic_id
-      dst_answer_id = AssessmentAnswer.transform(assessment_answer)
-      if dst_answer_id
-        ::Course::Discussion::Topic.find_by(actable_id: dst_answer_id,
-                                            actable_type: 'Course::Assessment::Answer').try(:id)
-      end
+      ::Course::Discussion::Topic.find_by(actable_id: CommentTopic.transform(comment_topic_id),
+                                          actable_type: 'Course::Assessment::SubmissionQuestion').try(:id)
     end
 
     def transform_creator_id
@@ -55,5 +52,11 @@ module V1::Source
       user_id = User.transform(user_course.user_id)
       user_id || ::User::DELETED_USER_ID
     end
+  end
+
+  # Do not touch the topic when create the post
+  ::Course::Discussion::Post._reflect_on_association(:topic).options.delete(:touch)
+  ::Course::Discussion::Post._save_callbacks.select {|cb| cb.kind  == :after && cb.name == :save }.each do |cb|
+    Course::Discussion::Post._save_callbacks.delete(cb)
   end
 end
