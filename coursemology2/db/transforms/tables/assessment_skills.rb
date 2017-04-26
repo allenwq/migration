@@ -2,14 +2,21 @@ def transform_assessment_skills(course_ids = [])
   transform_table :tag_groups,
                   to: ::Course::Assessment::SkillBranch,
                   default_scope: proc { within_courses(course_ids) } do
+    before_transform do |old|
+      # Skip migrate the magic uncategorized category
+      if old.name == 'Uncategorized'
+        old.class.memoize_transform(old.id, 'NULL')
+        false
+      else
+        true
+      end
+    end
     primary_key :id
     column to: :course_id do
       V1::Source::Course.transform(source_record.course_id)
     end
     column :name, to: :title
-    column :description, to: :description do |description|
-      description.present? ? description : '( No Description )'
-    end
+    column :description
     column :updated_at
     column :created_at
 
@@ -24,12 +31,11 @@ def transform_assessment_skills(course_ids = [])
       V1::Source::Course.transform(source_record.course_id)
     end
     column to: :skill_branch_id do
-      V1::Source::TagGroup.transform(source_record.tag_group_id)
+      id = V1::Source::TagGroup.transform(source_record.tag_group_id)
+      id == 'NULL' ? nil : id
     end
     column :name, to: :title
-    column :description, to: :description do |description|
-      description.present? ? description : '( No Description )'
-    end
+    column :description
     column :updated_at
     column :created_at
 
@@ -37,12 +43,14 @@ def transform_assessment_skills(course_ids = [])
   end
 
   transform_table :taggable_tags, to: :course_assessment_questions_skills,
-                  default_scope: proc { within_courses(course_ids) } do
+                  default_scope: proc { within_courses(course_ids).includes(question: :question_assessments) } do
+    before_transform do |old|
+      !old.question_deleted?
+    end
+
     primary_key :id
     column to: :question_id do
-      if source_record.taggable_type == 'Assessment::Question'
-        V1::Source::AssessmentQuestion.transform(source_record.taggable_id)
-      end
+      V1::Source::AssessmentQuestion.transform(source_record.taggable_id)
     end
     column to: :skill_id do
       V1::Source::Tag.transform(source_record.tag_id)
