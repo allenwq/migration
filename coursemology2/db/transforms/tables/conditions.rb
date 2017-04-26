@@ -29,18 +29,25 @@ def transform_conditions(course_ids = [])
       ::Course::Assessment.name
     end
     column to: :conditional_id do
-      V1::Source::Assessment.transform(source_record.dependent_id)
+      V1::Source::Assessment.transform(source_record.id)
     end
     column to: :course_id do
       conditional.course_id
     end
     column to: :assessment_id do
       # The id points to the assessment id.
-      V1::Source::Assessment.transform(source_record.id)
+      V1::Source::Assessment.transform(source_record.dependent_id)
     end
     column to: :minimum_grade_percentage do
       # Only require to finish the dependent one.
-      0.0
+      nil
+    end
+
+    column to: :created_at do
+      Time.zone.now
+    end
+    column to: :updated_at do
+      Time.zone.now
     end
 
     skip_saving_unless_valid
@@ -94,6 +101,6 @@ end
 # end
 #
 # create_table "assessment_dependency", :id => false, :force => true do |t|
-#   t.integer "id",           :default => 0, :null => false
+#   t.integer "id",           :default => 0, :null => false  This id points to the one that depends on others
 #   t.integer "dependent_id"
 # end
