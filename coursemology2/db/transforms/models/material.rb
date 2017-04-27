@@ -39,4 +39,10 @@ module V1::Source
       end
     end
   end
+
+  ::Course::Material.class_eval do
+    # Don't touch folder
+    def touch_folder
+    end
+  end
 end

@@ -6,7 +6,7 @@ def transform_materials(course_ids = [])
     column to: :parent_id do
       if source_record.parent_folder_id
         dst_id = V1::Source::MaterialFolder.transform(source_record.parent_folder_id)
-        if !dst_id
+        if dst_id.blank?
           puts "Cannot find parent for #{source_record.class.name} #{source_record.id}"
         end
         dst_id
@@ -22,7 +22,7 @@ def transform_materials(course_ids = [])
     column :description
     column :can_student_upload
     column to: :start_at do
-      source_record.open_at || Time.zone.now
+      source_record.open_at || source_record.created_at
     end
     column :close_at, to: :end_at
     column :created_at
@@ -31,10 +31,15 @@ def transform_materials(course_ids = [])
     save validate: false, if: proc {
       if !source_record.parent_folder_id
         # For root folder we just ignore and use course's default root folder.
-        source_record.class.memoize_transform(source_record.id, course.root_folder)
+        source_record.class.memoize_transform(source_record.id, course.root_folder.id)
         false
       elsif parent_id && valid?
         true
+      elsif parent
+        # Merge duplicate folders
+        other = parent.children.find_by(name: name)
+        source_record.class.memoize_transform(source_record.id, other.id) if other
+        false
       else
         puts "Invalid #{source_record.class} #{source_record.primary_key_value}:"\
         " #{errors.full_messages.to_sentence}"
@@ -54,17 +59,21 @@ def transform_materials(course_ids = [])
       source_record.transform_name
     end
     column to: :attachment_reference do
-      attachment = source_record.file_upload.transform_attachment_reference
-      self.name = nil if !attachment # Make it invalid so it won't be saved
-      attachment
+      source_record.file_upload.transform_attachment_reference
     end
     column :description
-    # TODO: creator is overwrote
-    column to: :creator_id do
-      source_record.transform_creator_id
-    end
+    column :transform_creator_id, to: :creator_id
+    column :transform_creator_id, to: :updater_id
     column :created_at
     column :updated_at
+
+    before_save do |old, new|
+      if new.attachment_reference
+        true
+      else
+        false
+      end
+    end
 
     skip_saving_unless_valid
   end
