@@ -39,18 +39,23 @@ class Downloader
 
     # @param [Proc] download_proc, the proc which downloads the file, if url is not found in
     #   cache, file will be downloaded.
-    def url_to_attachment_reference(url, download_proc, name = nil)
-      name ||= name_from_url(url)
+    def url_to_attachment_reference(url, download_proc, options = {})
+      name = options[:name] || name_from_url(url)
       hash = $url_mapper.get_hash(url)
       reference = nil
       if hash && attachment = ::Attachment.find_by(name: hash)
         reference = ::AttachmentReference.new(
           attachment: attachment,
-          name: name
+          name: name,
         )
       elsif local_file = download_proc.call
         attachment = ::Attachment.find_or_initialize_by(file: local_file)
-        attachment.save! unless attachment.persisted?
+        if attachment.new_record?
+          attachment.created_at = options[:created_at]
+          attachment.updated_at = options[:updated_at]
+          attachment.save!
+        end
+
         local_file.close unless local_file.closed?
         reference = ::AttachmentReference.new(attachment: attachment)
         reference.name = name
@@ -59,6 +64,9 @@ class Downloader
         $url_mapper.set_v2_url(url, reference.url)
       end
 
+      reference.creator_id = options[:creator_id]
+      reference.created_at = options[:created_at]
+      reference.updated_at = options[:updated_at]
       reference
     end
 

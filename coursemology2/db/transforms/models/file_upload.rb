@@ -11,7 +11,10 @@ module V1::Source
       Downloader.url_to_attachment_reference(
         url,
         proc { Downloader.download_to_local(url, self, file_file_name) },
-        sanitized_name
+        name: sanitized_name,
+        updated_at: updated_at,
+        created_at: created_at,
+        creator_id: User.transform(creator_id)
       )
     end
 
