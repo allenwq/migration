@@ -65,6 +65,7 @@ class Downloader
       end
 
       reference.creator_id = options[:creator_id]
+      reference.updater_id = options[:creator_id]
       reference.created_at = options[:created_at]
       reference.updated_at = options[:updated_at]
       reference

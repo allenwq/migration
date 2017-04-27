@@ -12,8 +12,8 @@ module V1::Source
         url,
         proc { Downloader.download_to_local(url, self, file_file_name) },
         name: sanitized_name,
-        updated_at: updated_at,
-        created_at: created_at,
+        updated_at: updated_at - 8.hours,
+        created_at: created_at - 8.hours,
         creator_id: User.transform(creator_id)
       )
     end

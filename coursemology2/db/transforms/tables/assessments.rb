@@ -59,7 +59,8 @@ def transform_assessments(course_ids = [])
         attachment = file.transform_attachment_reference
         if attachment
           folder.materials.build(attachment_reference: attachment, name: attachment.name,
-                                 created_at: file.created_at, updated_at: file.updated_at)
+                                 created_at: attachment.created_at, updated_at: attachment.updated_at,
+                                 creator_id: attachment.creator_id, updater_id: attachment.updater_id)
         end
       end
     end
