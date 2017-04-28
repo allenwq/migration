@@ -4,6 +4,8 @@ module V1::Source
   def_model 'courses' do
     has_many :course_navbar_preferences, inverse_of: nil
 
+    time_shift :start_at, :end_at
+
     def training_pref
       @training_pref ||= course_navbar_preferences.where(item: 'trainings').first ||
         CourseNavbarPreference.new(name: 'Trainings', pos: 2)

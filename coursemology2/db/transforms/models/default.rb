@@ -1,13 +1,7 @@
 module V1::Source
-  def_model 'user_courses', 'announcements', 'levels'
-
-  ::Course::Announcement.class_eval do
-    # Ignore attachment callbacks.
-    def update_attachment_references
-    end
-
-    # Do not send notification
-    def send_notification
-    end
+  def_model 'user_courses' do
+    time_shift :last_active_time
   end
+
+  def_model 'levels'
 end

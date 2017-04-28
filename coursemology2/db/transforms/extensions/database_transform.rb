@@ -18,15 +18,6 @@ DatabaseTransform::SchemaTable.class_eval do
   end
   alias_method_chain :run_transform, :persistence
 
-  # Convert SG time to UTC time globally
-  def assign_record_field_with_timezone_conversion!(old, new, column, new_value)
-    if new_value.is_a?(Time)
-      new_value -= 8.hours
-    end
-    assign_record_field_without_timezone_conversion!(old, new, column, new_value)
-  end
-  alias_method_chain :assign_record_field!, :timezone_conversion
-
   # Helper method.
   # Skip the invalid record and log errors.
   def skip_saving_unless_valid(&block)

@@ -35,6 +35,31 @@ module V1::Source
           where(course_id: Array(course_ids))
         end
 
+        # Convert SG time to UTC time
+        def klass.time_shift(*columns)
+          columns.each do |col|
+            raise "'#{col}' does not exist in #{table_name}" unless connection.column_exists?(table_name, col)
+
+            define_method(col) do
+              val = read_attribute(col)
+              val -= 8.hours if val
+              val
+            end
+          end
+        end
+
+        if klass.column_names.include?('created_at')
+          klass.class_eval do
+            time_shift :created_at
+          end
+        end
+
+        if klass.column_names.include?('updated_at')
+          klass.class_eval do
+            time_shift :updated_at
+          end
+        end
+
         klass.class_exec(&block) if block
       end)
     end

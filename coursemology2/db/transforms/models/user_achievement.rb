@@ -6,6 +6,8 @@ module V1::Source
       course_ids = Array(course_ids)
       joins(:achievement).where(achievement: { course_id: course_ids })
     end
+
+    time_shift :obtained_at
   end
 
   ::Course::UserAchievement.class_eval do
