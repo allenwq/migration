@@ -36,27 +36,25 @@ module V1::Source
         end
 
         # Convert SG time to UTC time
-        def klass.time_shift(*columns)
-          columns.each do |col|
-            raise "'#{col}' does not exist in #{table_name}" unless connection.column_exists?(table_name, col)
-
-            define_method(col) do
-              val = read_attribute(col)
-              val -= 8.hours if val
-              val
-            end
-          end
-        end
-
-        if klass.column_names.include?('created_at')
-          klass.class_eval do
-            time_shift :created_at
-          end
-        end
-
-        if klass.column_names.include?('updated_at')
-          klass.class_eval do
-            time_shift :updated_at
+        # def klass.time_shift(*columns)
+        #   columns.each do |col|
+        #     raise "'#{col}' does not exist in #{table_name}" unless connection.column_exists?(table_name, col)
+        #
+        #     define_method(col) do
+        #       val = read_attribute(col)
+        #       val -= 8.hours if val
+        #       val
+        #     end
+        #   end
+        # end
+        #
+        # General and more reliable solution of shifting time
+        klass.columns.select { |c| c.type == :datetime }.each do |col|
+          name = col.name
+          define_method(name) do
+            val = read_attribute(name)
+            val -= 8.hours if val
+            val
           end
         end
 

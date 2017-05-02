@@ -1,7 +1,5 @@
 module V1::Source
-  def_model 'announcements' do
-    time_shift :publish_at, :expiry_at
-  end
+  def_model 'announcements'
 
   ::Course::Announcement.class_eval do
     # Ignore attachment callbacks.
