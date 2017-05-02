@@ -12,7 +12,8 @@ def transform_forum_posts(course_ids = [])
       dst_id
     end
     column to: :topic_id do
-      V1::Source::ForumTopic.transform(source_record.topic_id)
+      id = V1::Source::ForumTopic.transform(source_record.topic_id)
+      Course::Discussion::Topic.find_by(actable_id: id, actable_type: 'Course::Forum::Topic').try(:id)
     end
     column :title
     column to: :text do
