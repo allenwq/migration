@@ -21,12 +21,18 @@ class V1 < DatabaseTransform::Schema
     Source::Base.remove_connection
   end
 
-  thread 8
+  thread ENV['thread'] || 4
 
-  SHUQUN_COURSES = []
-  NUS_COURSES = [362, 470]
-  NUS_HIGH_COURSES = []
-  course_ids = NUS_COURSES + SHUQUN_COURSES + NUS_HIGH_COURSES
+  @course_id = ENV['course'].to_i
+  @instance = ENV['instance']
+  course_ids = Array(@course_id)
+
+  unless ENV['course']
+    puts 'Usage: rake db:transform[v1] course=xxx_id instance=host_name thread=number'
+    exit
+  end
+
+  puts "Migrate course #{course_ids.join(', ')} ..."
 
   transform_users
   transform_courses(course_ids)
@@ -65,24 +71,24 @@ class V1 < DatabaseTransform::Schema
   transform_conditions(course_ids)
   transform_materials(course_ids)
 
+  transform_surveys(course_ids)
+  transform_survey_sections(course_ids)
+  transform_survey_questions(course_ids)
+  transform_survey_question_options(course_ids)
+
   after_transform do
     ensure_db_connection
-    merge_annotation_topics
-    update_post_parent_id
+    merge_annotation_topics(course_ids)
 
-    shuqun = Instance.find_or_create_by!(name: 'Shuqun', host: 'shuqun.coursemology.org')
-
+    instance = Instance.find_by(host: @instance)
     # Need to be default because we want to find the course in the default instance
     ActsAsTenant.current_tenant = Instance.default
-    SHUQUN_COURSES.each do |src_course_id|
-      dst_course = Course.find(Source::Course.transform(src_course_id))
-      move_course_to_instance(dst_course, shuqun)
-    end
+    course_ids.each do |src_course_id|
+      next unless instance
 
-    nus_high = Instance.find_or_create_by!(name: 'NUS High', host: 'nushigh.coursemology.org')
-    NUS_HIGH_COURSES.each do |src_course_id|
+      puts Source::Course.transform(src_course_id)
       dst_course = Course.find(Source::Course.transform(src_course_id))
-      move_course_to_instance(dst_course, nus_high)
+      move_course_to_instance(dst_course, instance)
     end
   end
 
@@ -102,6 +108,8 @@ class V1 < DatabaseTransform::Schema
     end
 
     def move_course_to_instance(course, instance)
+      puts "Moving course #{course.id} to #{instance.host} ..."
+
       # Move users belongs to courses in the instance to the instance.
       user_ids_to_move = course.users.select(:id)
       InstanceUser.where(user_id: user_ids_to_move).each do |instance_user|
@@ -111,25 +119,18 @@ class V1 < DatabaseTransform::Schema
       course.update_column(:instance_id, instance.id)
     end
 
-    def update_post_parent_id
-      # Set the parent of posts to be the first post (only for comments).
-      Course::Discussion::Topic.globally_displayed.includes(:posts).find_each do |topic|
-        return unless topic.posts.length > 1
-        parent_id = nil
-        # Update parent id to previous post.
-        topic.posts.each_with_index do |post, index|
-          post.update_column(:parent_id, parent_id)
-          parent_id = post.id
-        end
-      end
-    end
-
     # There are annotations of same file and line, this is to merge them into one.
-    def merge_annotation_topics
-      duplicate_ids = Course::Assessment::Answer::ProgrammingFileAnnotation.
-        select([:line, :file_id]).group(:line, :file_id).having('count(*) > 1').to_a
-      duplicate_ids.each do |attr|
-        do_merge(attr.file_id, attr.line)
+    def merge_annotation_topics(course_ids)
+      puts "Merging annotation topics for course #{course_ids.join(', ')}"
+
+      course_ids.each do |course_id|
+        ids = Course::Assessment::Answer::ProgrammingFileAnnotation.joins(:discussion_topic).
+          where("course_discussion_topics.course_id = #{course_id}").pluck(:id)
+        duplicate_ids = Course::Assessment::Answer::ProgrammingFileAnnotation.where(id: ids).
+          select([:line, :file_id]).group(:line, :file_id).having('count(*) > 1').to_a
+        duplicate_ids.each do |attr|
+          do_merge(attr.file_id, attr.line)
+        end
       end
     end
 
