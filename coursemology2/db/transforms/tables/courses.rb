@@ -1,6 +1,9 @@
-def transform_courses(ids = [])
+def transform_courses(ids = [], fix_id = false)
   transform_table :courses, to: ::Course, default_scope: proc { where(id: ids) } do
     primary_key :id
+    column :id, to: :id do |id|
+      fix_id ? id + 1000 : nil
+    end
     column to: :creator_id do
       V1::Source::User.transform(source_record.creator_id)
     end

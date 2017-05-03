@@ -28,14 +28,16 @@ class V1 < DatabaseTransform::Schema
   course_ids = Array(@course_id)
 
   unless ENV['course']
-    puts 'Usage: rake db:transform[v1] course=xxx_id instance=host_name thread=number'
+    puts 'Usage: rake db:transform[v1] course=xxx_id [instance=host_name thread=number fix_id=T/(F) skip_user=(T)/F]'
     exit
   end
 
+  dynamic_id = (ENV['fix_id'] || '').downcase == 'f'
+  skip_user = (ENV['skip_user'] || '').downcase == 't'
   puts "Migrate course #{course_ids.join(', ')} ..."
 
-  transform_users
-  transform_courses(course_ids)
+  transform_users unless skip_user
+  transform_courses(course_ids, !dynamic_id)
   transform_course_users(course_ids)
 
   transform_achievements(course_ids)
@@ -86,7 +88,6 @@ class V1 < DatabaseTransform::Schema
     course_ids.each do |src_course_id|
       next unless instance
 
-      puts Source::Course.transform(src_course_id)
       dst_course = Course.find(Source::Course.transform(src_course_id))
       move_course_to_instance(dst_course, instance)
     end
