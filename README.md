@@ -11,7 +11,7 @@ gem 'mysql2'
 
 Add a new connection to the old database in `database.yml`.
 ```yaml
-coursemology_v1:
+v1:
   adapter: mysql2
   database: coursemology
   host: coursemology.org
@@ -21,7 +21,7 @@ Clone the files from this repo to Coursemology V2's app folder.
 
 And then:
 ```sh
-$ rake db:transform[coursemology_v1]
+$ rake db:transform[v1]
 ```
 
 ## Known Issues
