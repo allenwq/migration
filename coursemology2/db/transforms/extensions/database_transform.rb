@@ -50,7 +50,7 @@ DatabaseTransform::SchemaTableRecordMapping.module_eval do
   end
 
   def reset_transform
-    store.reset_table(table_name)
+    store.reset_table(table_name) if (ENV['reset_redis'] || '').downcase == 't'
   end
 
   def store

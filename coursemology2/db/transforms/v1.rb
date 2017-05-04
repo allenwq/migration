@@ -28,7 +28,7 @@ class V1 < DatabaseTransform::Schema
   course_ids = Array(@course_id)
 
   unless ENV['course']
-    puts 'Usage: rake db:transform[v1] course=xxx_id [instance=host_name thread=number fix_id=T/(F) skip_user=(T)/F]'
+    puts 'Usage: rake db:transform[v1] course=xxx_id [instance=host_name thread=number fix_id=T/(F) skip_user=(T)/F reset_redis=(T)/F]'
     exit
   end
 

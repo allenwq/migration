@@ -1,12 +1,16 @@
 def transform_users
   transform_table :users, to: ::User, default_scope: proc { all } do
     before_transform do |old|
-      v2_email = User::Email.find_by(email: old.email)
-      if v2_email
+      new_id = ::V1::Source::User.transform(old.id)
+      if new_id
+        v2_email = User::Email.find_by(email: old.email, user_id: new_id)
         # Correct the confirmed at
-        if v2_email.confirmed_at.present? && old.confirmed_at.present? && old.confirmed_at < v2_email.confirmed_at
+        if v2_email && v2_email.confirmed_at.present? && old.confirmed_at.present? && old.confirmed_at < v2_email.confirmed_at
           v2_email.update_column(:confirmed_at, old.confirmed_at)
         end
+        false # Don't migrate if user is memoized.
+      elsif v2_email = User::Email.find_by(email: old.email)
+        # If there's already an email, just memoize and return
         V1::Source::User.memoize_transform(old.id, v2_email.user_id)
         false
       else
