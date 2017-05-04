@@ -28,12 +28,22 @@ class V1 < DatabaseTransform::Schema
   course_ids = Array(@course_id)
 
   unless ENV['course']
-    puts 'Usage: rake db:transform[v1] course=xxx_id [instance=host_name thread=number fix_id=T/(F) skip_user=(T)/F reset_redis=(T)/F]'
+    puts 'Usage: rake db:transform[v1] course=xxx_id [instance=host_name thread=number fix_id=T/(F) skip_user=(T)/F reset_redis=(T)/F force=(T)/F]'
     exit
   end
 
   dynamic_id = (ENV['fix_id'] || '').downcase == 'f'
   skip_user = (ENV['skip_user'] || '').downcase == 't'
+
+  course_ids.each do |id|
+    target = Source::Course.transform(id)
+
+    if target && !(ENV['force'] == 'T')
+      puts "Course #{id} is already migrated to #{target}, `use force=T` to if you really want to migrate again."
+      exit
+    end
+  end
+
   puts "Migrate course #{course_ids.join(', ')} ..."
 
   transform_users unless skip_user
