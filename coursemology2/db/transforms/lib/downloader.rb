@@ -29,11 +29,13 @@ class Downloader
           puts "Download #{object.class} #{object.primary_key_value} failed, error: #{e.inspect}"
           local_file.close
           File.delete(local_file_path)
+          local_file_path = nil
           local_file = nil
         end
       end
 
-      $url_mapper.set_file_path(url, local_file_path)
+      $url_mapper.set_file_path(url, local_file_path) if local_file_path
+
       local_file
     end
 
