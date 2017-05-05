@@ -22,9 +22,13 @@ module V1::Source
         ::Course::Condition::Achievement.new(achievement_id: Achievement.transform(req_id))
       when 'Level'
         dst_lvl_id = Level.transform(req_id)
-        lvl_number = 0
+        lvl_number = nil
         lvl_number = ::Course::Level.find(dst_lvl_id).level_number if dst_lvl_id
-        ::Course::Condition::Level.new(minimum_level: lvl_number)
+        if lvl_number
+          ::Course::Condition::Level.new(minimum_level: lvl_number)
+        else
+          nil
+        end
       when 'AsmReq'
         dst_assessment_id = Assessment.transform(req.asm_id)
         percent = req.min_grade.to_f # min_grade is a percent, not grade.

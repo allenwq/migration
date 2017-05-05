@@ -12,11 +12,20 @@ def transform_conditions(course_ids = [])
     end
     column to: :actable do
       actable = source_record.transform_actable
-      actable.condition = self
+      actable.condition = self if actable
       actable
     end
     column :updated_at
     column :created_at
+
+    before_save do |old, new|
+      if new.actable.nil?
+        puts "Invalid #{old.class.name} #{old.id}"
+        false
+      else
+        true
+      end
+    end
 
     skip_saving_unless_valid
   end
