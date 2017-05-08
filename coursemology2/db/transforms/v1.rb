@@ -21,7 +21,8 @@ class V1 < DatabaseTransform::Schema
     Source::Base.remove_connection
   end
 
-  thread ENV['thread'] || 4
+  num_threads = ENV['thread'] ? ENV['thread'].to_i : 4
+  thread num_threads
 
   @course_id = ENV['course'].to_i
   @instance = ENV['instance']
