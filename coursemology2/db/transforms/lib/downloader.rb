@@ -65,7 +65,6 @@ class Downloader
         reference.name = name
 
         $url_mapper.set_hash(url, reference.attachment.name)
-        $url_mapper.set_v2_url(url, reference.url)
       end
 
       reference.creator_id = options[:creator_id]
