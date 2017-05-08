@@ -3,11 +3,6 @@ def transform_users
     before_transform do |old|
       new_id = ::V1::Source::User.transform(old.id)
       if new_id
-        v2_email = User::Email.find_by(email: old.email, user_id: new_id)
-        # Correct the confirmed at
-        if v2_email && v2_email.confirmed_at.present? && old.confirmed_at.present? && old.confirmed_at < v2_email.confirmed_at
-          v2_email.update_column(:confirmed_at, old.confirmed_at)
-        end
         false # Don't migrate if user is memoized.
       elsif v2_email = User::Email.find_by(email: old.email)
         # If there's already an email, just memoize and return
