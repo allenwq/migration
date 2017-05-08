@@ -21,6 +21,8 @@ class Downloader
         open(url, 'rb') do |read_file|
           local_file.write(read_file.read)
         end
+        # Set the read count to the begin of the file
+        local_file.rewind
       rescue StandardError => e
         tries -= 1
         if tries > 0
