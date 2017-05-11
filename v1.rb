@@ -8,17 +8,17 @@ class V1 < DatabaseTransform::Schema
   $url_mapper = UrlHashMapper.new
 
   around_job do |&job|
-    ActiveRecord::Base.remove_connection
-    Source::Base.remove_connection
-    ActiveRecord::Base.establish_connection
-    Source::Base.establish_connection :v1
+    # ActiveRecord::Base.remove_connection
+    # Source::Base.remove_connection
+    # ActiveRecord::Base.establish_connection
+    # Source::Base.establish_connection :v1
     ActsAsTenant.current_tenant = Instance.default
     User.stamper = User.system
 
     job.call
-
-    ActiveRecord::Base.remove_connection
-    Source::Base.remove_connection
+    #
+    # ActiveRecord::Base.remove_connection
+    # Source::Base.remove_connection
   end
 
   num_threads = ENV['thread'] ? ENV['thread'].to_i : 4
@@ -47,7 +47,7 @@ class V1 < DatabaseTransform::Schema
 
   puts "Migrate course #{course_ids.join(', ')} ..."
 
-  transform_users unless skip_user
+  # transform_users unless skip_user
   transform_courses(course_ids, !dynamic_id)
   transform_course_users(course_ids)
 
@@ -88,6 +88,8 @@ class V1 < DatabaseTransform::Schema
   transform_survey_sections(course_ids)
   transform_survey_questions(course_ids)
   transform_survey_question_options(course_ids)
+  transform_survey_responses(course_ids)
+  transform_survey_answers(course_ids)
 
   after_transform do
     ensure_db_connection
