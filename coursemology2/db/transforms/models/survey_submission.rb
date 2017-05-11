@@ -2,6 +2,7 @@ module V1::Source
   def_model 'survey_submissions' do
     belongs_to :survey, class_name: 'Survey', inverse_of: nil
     belongs_to :user_course, class_name: 'UserCourse', inverse_of: nil
+    has_many :mrq_answers, foreign_key: 'survey_submission_id', class_name: 'SurveyMrqAnswer', inverse_of: nil
 
     scope :within_courses, ->(course_ids) do
       joins(:survey).

@@ -27,6 +27,7 @@ def transform_survey_responses(course_ids = [])
     column :updated_at
 
     before_save do |old, new|
+      # Migrate exp record
       exp = new.acting_as
       exp.creator_id = new.creator_id
       exp.updater_id = new.updater_id
@@ -45,6 +46,21 @@ def transform_survey_responses(course_ids = [])
           exp.awarded_at = new.created_at
         end
       end
+
+      # Migrate MRQ answers, V1 MRQ answers are equal to answer_options in v2, must migrate here to make sure it's thread safe
+      # TODO: wait for survey to change the schema
+      # old.mrq_answers.group_by(&:question_id).each do |pair|
+      #   question_id = V1::Source::SurveyQuestion.transform(pair[0])
+      #   old_answers = pair[1]
+      #   selected_option_ids = old_answers.map do |a|
+      #     V1::Source::SurveyQuestionOption.transform(a.option_id)
+      #   end
+      #   new_question = ::Course::Survey::Question.find(question_id)
+      #   answer = new.answers.build(question_id: question_id)
+      #   new_question.option_ids.each do |id|
+      #     answer.options.build(question_option_id: id, selected: selected_option_ids.include?(id))
+      #   end
+      # end
 
       true
     end
