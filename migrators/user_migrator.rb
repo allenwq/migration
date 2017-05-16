@@ -3,6 +3,6 @@ class UserMigrator
   end
 
   def start
-    migrate_users
+    UserTable.new.run
   end
 end

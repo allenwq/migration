@@ -33,7 +33,7 @@ module V1
     end
 
     def reset
-      store.reset_table(table_name) if (ENV['reset_redis'] || '').downcase == 't'
+      store.reset_table(table_name)
     end
 
     def store

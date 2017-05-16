@@ -1,64 +1,88 @@
-def transform_users
-  transform_table :users, to: ::User, default_scope: proc { all } do
-    before_transform do |old|
-      new_id = ::V1::Source::User.transform(old.id)
+class UserTable < BaseTable
+  def run
+    V1::User.find_in_batches do |batch|
+      migrate_batch(batch)
+    end
+  end
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new_id = V1::User.get_new(old.id)
       if new_id
-        false # Don't migrate if user is memoized.
+        fix_timestamps(old, new_id)
+        next # Don't migrate if user is memoized.
       elsif v2_email = User::Email.find_by(email: old.email)
         # If there's already an email, just memoize and return
-        V1::Source::User.memoize_transform(old.id, v2_email.user_id)
-        false
-      else
-        true
+        V1::User.memoize(old.id, v2_email.user_id)
+        next
       end
-    end
 
-    primary_key :id
-    column :name
-    column :email do |old_email|
-      self.email = old_email
-      if source_record.confirmed_at.present?
-        primary_email_record.confirmed_at = source_record.confirmed_at
-      else
-        skip_confirmation_notification!
-      end
-    end
-    # TODO: Improve performance for user profile photos.
-    column :profile_photo_url do
-      photo_file = source_record.transform_profile_photo
-      if photo_file
-        self.profile_photo = photo_file
-        photo_file.close unless photo_file.closed?
-      end
-    end
-    column :encrypted_password
-    column :sign_in_count
-    column :current_sign_in_at
-    column :last_sign_in_at
-    column :current_sign_in_ip
-    column :last_sign_in_ip
-    column :system_role_id, to: :role do |old_role|
-      case old_role
-      when 1
-        self.role = 1
-      else
-        self.role = 0
-      end
-    end
-    column :uid do
-      if source_record.uid.present? && source_record.provider == 'facebook'
-        auth = { provider: 'facebook', uid: source_record.uid }
-        # The check is for that some users are migrated to v2 and changed their email
-        if User::Identity.where(auth).count == 0
-          link_with_omniauth(auth)
+      puts "migrate #{old.id}"
+      new = ::User.new
+
+      migrate(old, new) do
+        column :name
+        column :email
+
+        if old.confirmed_at.present?
+          new.primary_email_record.confirmed_at = old.confirmed_at
+        else
+          new.skip_confirmation_notification!
         end
+        new.primary_email_record.updated_at = old.created_at
+        new.primary_email_record.created_at = old.created_at
+
+        photo_file = old.transform_profile_photo
+        if photo_file
+          new.profile_photo = photo_file
+          photo_file.close unless photo_file.closed?
+        end
+
+        column :encrypted_password
+        column :sign_in_count
+        column :current_sign_in_at
+        column :last_sign_in_at
+        column :current_sign_in_ip
+        column :last_sign_in_ip
+        column :role do
+          # Roles
+          # V1: { superuser: 1, normal: 2, lecturer: 3, ta: 4, student: 5, shared: 6 }
+          # V2: { normal: 0, administrator: 1, auto_grader: 2 } (For users)
+          case old.system_role_id
+          when 1
+            1
+          else
+            0
+          end
+        end
+        column :time_zone do
+          old.time_zone || 'Singapore'
+        end
+        column :updated_at
+        column :created_at
+
+        if old.uid.present? && old.provider == 'facebook'
+          auth = { provider: 'facebook', uid: old.uid }
+          # The check is for that some users are migrated to v2 and changed their email
+          if ::User::Identity.where(auth).count == 0
+            new.link_with_omniauth(auth)
+          end
+        end
+
+        new.save!(validate: false)
+        old.class.memoize(old.id, new.id)
       end
     end
-    column to: :time_zone do
-      source_record.time_zone || 'Singapore'
-    end
+  end
 
-    save validate: false
+  def fix_timestamps(old, new_id)
+    # Map v1 user timestamps to v2
+    new = ::User.find(new_id)
+
+    if (new.updated_at - new.created_at).abs < 1.minute
+      new.update_column(:updated_at, old.updated_at)
+    end
+    new.update_column(:created_at, old.created_at)
   end
 end
 
@@ -118,7 +142,13 @@ end
 #   t.datetime "updated_at",             null: false
 # end
 
-# Roles
-# V1: { superuser: 1, normal: 2, lecturer: 3, ta: 4, student: 5, shared: 6 }
-# V2: { normal: 0, administrator: 1, auto_grader: 2 } (For users)
-#
+# create_table "user_emails", force: :cascade do |t|
+#   t.boolean  "primary",              :default=>false, :null=>false
+#   t.integer  "user_id",              :index=>{:name=>"index_user_emails_on_user_id_and_primary", :with=>["primary"], :unique=>true, :where=>"(\"primary\" <> false)"}, :foreign_key=>{:references=>"users", :name=>"fk_user_emails_user_id", :on_update=>:no_action, :on_delete=>:no_action}
+#   t.string   "email",                :limit=>255, :null=>false, :index=>{:name=>"index_user_emails_on_email", :unique=>true, :case_sensitive=>false}
+#   t.string   "confirmation_token",   :limit=>255, :index=>{:name=>"index_user_emails_on_confirmation_token", :unique=>true}
+#   t.datetime "confirmed_at"
+#   t.datetime "confirmation_sent_at"
+#   t.string   "unconfirmed_email",    :limit=>255
+# end
+

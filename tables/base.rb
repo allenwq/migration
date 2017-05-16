@@ -1,4 +1,8 @@
 class BaseTable
+  def initialize(course_ids = [])
+    @course_ids = course_ids
+  end
+
   def migrate(old, new, &block)
     DSL.new(old, new, &block).eval
   end
