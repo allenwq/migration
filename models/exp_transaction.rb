@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'exp_transactions' do
     belongs_to :user_course, inverse_of: nil
 

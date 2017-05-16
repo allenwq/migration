@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'tabs'
 
   def_model 'assessment_missions'

@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'users' do
     DEFAULT_PIC_URL = 'http://coursemology.s3.amazonaws.com/public/default_profile_pic.png'
     # All photos in this CDN are not accessible any more

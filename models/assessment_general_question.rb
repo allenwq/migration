@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'assessment_general_questions' do
     has_one :assessment_question, as: :as_question, inverse_of: nil
 

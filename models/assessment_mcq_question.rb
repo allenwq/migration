@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   ::Course::Assessment::Question::MultipleResponse.class_eval do
     # skip validation
     raise 'Method removed validate_multiple_choice_has_solution' unless private_instance_methods(false).include?(:validate_multiple_choice_has_solution)

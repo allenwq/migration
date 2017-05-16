@@ -1,5 +1,5 @@
-module V1::Source
-  class Base < ActiveRecord::Base
+module V1
+  class BaseModel < ActiveRecord::Base
     self.abstract_class = true
     establish_connection :v1
 
@@ -16,12 +16,38 @@ module V1::Source
     end
   end
 
+  module RecordMap
+    # Get the old primary key to new key
+    def get_new(old_primary_key)
+      store.get(table_name, old_primary_key)
+    end
+
+    def memoized?(old_primary_key)
+      store.has_key?(table_name, old_primary_key)
+    end
+
+    def memoize(old_primary_key, new_key)
+      return if new_key.nil?
+
+      store.set(table_name, old_primary_key, new_key)
+    end
+
+    def reset
+      store.reset_table(table_name) if (ENV['reset_redis'] || '').downcase == 't'
+    end
+
+    def store
+      @store ||= RedisStore.new
+    end
+  end
+
+
   # Define models by their table names
   # table name `user_courses` will define a model UserCourse
   def self.def_model(*args, &block)
     args.each do |table|
       class_name = table.singularize.camelize
-      const_set class_name, (Class.new(Base) do |klass|
+      const_set class_name, (Class.new(BaseModel) do |klass|
         klass.table_name = table
         klass.default_scope do
           if klass.column_names.include?('deleted_at')
@@ -36,19 +62,6 @@ module V1::Source
         end
 
         # Convert SG time to UTC time
-        # def klass.time_shift(*columns)
-        #   columns.each do |col|
-        #     raise "'#{col}' does not exist in #{table_name}" unless connection.column_exists?(table_name, col)
-        #
-        #     define_method(col) do
-        #       val = read_attribute(col)
-        #       val -= 8.hours if val
-        #       val
-        #     end
-        #   end
-        # end
-        #
-        # General and more reliable solution of shifting time
         klass.columns.select { |c| c.type == :datetime }.each do |col|
           name = col.name
           define_method(name) do
@@ -58,6 +71,7 @@ module V1::Source
           end
         end
 
+        klass.extend(RecordMap)
         klass.class_exec(&block) if block
       end)
     end

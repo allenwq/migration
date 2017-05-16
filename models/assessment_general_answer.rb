@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'assessment_general_answers' do
     has_one :assessment_answer, as: :as_answer, inverse_of: nil
 
@@ -26,7 +26,7 @@ module V1::Source
 
     def transform_question_id
       src_trq_id = assessment_answer.assessment_question.as_question_id
-      dst_trq_id = ::V1::Source::AssessmentGeneralQuestion.transform(src_trq_id)
+      dst_trq_id = ::V1::AssessmentGeneralQuestion.transform(src_trq_id)
       ::Course::Assessment::Question.
         find_by(actable_id: dst_trq_id,
                 actable_type: ::Course::Assessment::Question::TextResponse.name).try(:id)

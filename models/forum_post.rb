@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'forum_posts' do
     belongs_to :topic, class_name: 'ForumTopic', inverse_of: nil
     belongs_to :parent, class_name: 'ForumPost', inverse_of: nil

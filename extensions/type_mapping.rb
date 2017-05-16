@@ -1,18 +1,18 @@
 TYPE_MAPPING = {
-  'Assessment::Training' => V1::Source::AssessmentTraining.name,
-  'Assessment::Mission' => V1::Source::AssessmentMission.name,
-  'Assessment::McqQuestion' => V1::Source::AssessmentMcqQuestion.name,
-  'Assessment::CodingQuestion' => V1::Source::AssessmentCodingQuestion.name,
-  'Assessment::GeneralQuestion' => V1::Source::AssessmentGeneralQuestion.name,
-  'Assessment::Answer' => V1::Source::AssessmentAnswer.name,
-  'Assessment::McqAnswer' => V1::Source::AssessmentMcqAnswer.name,
-  'Assessment::CodingAnswer' => V1::Source::AssessmentCodingAnswer.name,
-  'Assessment::GeneralAnswer' => V1::Source::AssessmentGeneralAnswer.name,
-  'Achievement' => V1::Source::Achievement.name,
-  'Level' => V1::Source::Level.name,
-  'Assessment' => V1::Source::Assessment.name,
-  'AsmReq' => V1::Source::AsmReq.name,
-  'Material' => V1::Source::Material.name
+  'Assessment::Training' => V1::AssessmentTraining.name,
+  'Assessment::Mission' => V1::AssessmentMission.name,
+  'Assessment::McqQuestion' => V1::AssessmentMcqQuestion.name,
+  'Assessment::CodingQuestion' => V1::AssessmentCodingQuestion.name,
+  'Assessment::GeneralQuestion' => V1::AssessmentGeneralQuestion.name,
+  'Assessment::Answer' => V1::AssessmentAnswer.name,
+  'Assessment::McqAnswer' => V1::AssessmentMcqAnswer.name,
+  'Assessment::CodingAnswer' => V1::AssessmentCodingAnswer.name,
+  'Assessment::GeneralAnswer' => V1::AssessmentGeneralAnswer.name,
+  'Achievement' => V1::Achievement.name,
+  'Level' => V1::Level.name,
+  'Assessment' => V1::Assessment.name,
+  'AsmReq' => V1::AsmReq.name,
+  'Material' => V1::Material.name
 }
 
 module ActiveRecord

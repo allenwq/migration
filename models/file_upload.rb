@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'file_uploads' do
     scope :visible, ->() { where(is_public: true) }
     require 'open-uri'

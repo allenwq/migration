@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   ::Course::Assessment::Question::Programming.class_eval do
     # Disable package processing
     raise 'Method removed process_new_package' unless private_instance_methods(false).include?(:process_package)

@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'course_navbar_preferences'
 
   def_model 'courses' do

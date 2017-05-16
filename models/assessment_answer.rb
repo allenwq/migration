@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'assessment_answer_gradings'
 
   def_model 'assessment_answers' do

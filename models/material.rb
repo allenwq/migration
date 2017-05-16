@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'material_folders' do
     belongs_to :parent, class_name: 'MaterialFolder', foreign_key: 'parent_folder_id', inverse_of: nil
 

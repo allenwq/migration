@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'surveys'
 
   def_model 'survey_sections' do

@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'survey_submissions' do
     belongs_to :survey, class_name: 'Survey', inverse_of: nil
     belongs_to :user_course, class_name: 'UserCourse', inverse_of: nil

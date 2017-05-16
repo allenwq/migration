@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'user_achievements' do
     belongs_to :achievement, inverse_of: nil
 

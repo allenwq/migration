@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'comment_topics' do
     belongs_to :topic, polymorphic: true, inverse_of: nil
     belongs_to :course, inverse_of: nil

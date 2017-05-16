@@ -1,4 +1,4 @@
-module V1::Source
+module V1
   def_model 'achievements' do
     def transform_badge
       if icon_url.present?
