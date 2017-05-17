@@ -18,5 +18,9 @@ module V1
     raise 'Method removed validate_prescence_of_questions' unless private_instance_methods(false).include?(:validate_presence_of_questions)
     def validate_presence_of_questions
     end
+
+    raise 'Method removed' unless private_instance_methods(false).include?(:propagate_course)
+    def propagate_course
+    end
   end
 end

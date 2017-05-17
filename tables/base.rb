@@ -1,5 +1,5 @@
 class BaseTable
-  attr_reader :store
+  attr_reader :store, :course_ids
 
   def initialize(store, course_ids = [])
     @store = store
@@ -42,18 +42,15 @@ class DSL
   end
 
   def skip_saving_unless_valid
-    new.save validate: false, if: proc {
-      # Use block for validation if given
-      if block_given? && instance_exec(&block)
-        true
-      elsif !block_given? && valid?
-        true
-      else
-        puts "Invalid #{source_record.class} #{source_record.primary_key_value}:"\
-        " #{errors.full_messages.to_sentence}"
-        false
-      end
-    }
+    # Use block for validation if given
+    if block_given? && new.instance_exec(&block)
+      new.save(validate: false)
+    elsif !block_given? && new.valid?
+      new.save(validate: false)
+    else
+      puts "Invalid #{source_record.class} #{old.primary_key_value}:"\
+      " #{errors.full_messages.to_sentence}"
+    end
   end
 
   def method_missing(method, *args)

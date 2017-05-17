@@ -7,14 +7,14 @@ module V1
     belongs_to :owner, polymorphic: true
 
     # Return the attachment reference or nil
-    def transform_attachment_reference
+    def transform_attachment_reference(store)
       Downloader.url_to_attachment_reference(
         url,
         proc { Downloader.download_to_local(url, self, file_file_name) },
         name: sanitized_name,
         updated_at: updated_at,
         created_at: created_at,
-        creator_id: User.transform(creator_id)
+        creator_id: store.get(User.table_name, creator_id)
       )
     end
 

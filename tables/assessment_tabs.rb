@@ -1,31 +1,41 @@
-def transform_assessment_tabs(course_ids = [])
-  transform_table :tabs,
-                  to: ::Course::Assessment::Tab,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :title
-    column :pos, to: :weight do |pos|
-      pos || 1
+class AssessmentTabTable < BaseTable
+  def run
+    V1::Tab.within_courses(course_ids).find_in_batches do |batch|
+      migrate_batch(batch)
     end
-    column to: :category_id do
-      new_course = Course.find(V1::Source::Course.transform(source_record.course_id))
-      raise 'Category count invalid' if new_course.assessment_categories.count != 2
+  end
 
-      # Delete the default tabs because when the code goes here there's at least 1 tab.
-      if source_record.owner_type == 'Assessment::Training'
-        # Unscope weight
-        new_course.assessment_categories.unscope(:order).first.tabs.where(title: 'Default').delete_all
-        new_course.assessment_categories.unscope(:order).first.id
-      else
-        new_course.assessment_categories.unscope(:order).last.tabs.where(title: 'Default').delete_all
-        new_course.assessment_categories.unscope(:order).last.id
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = Course::Assessment::Tab.new
+      migrate(old, new) do
+        column :title
+        column :weight do
+          old.pos || 1
+        end
+        column :category_id do
+          new_course = ::Course.find(store.get(V1::Course.table_name, old.course_id))
+          raise 'Category count invalid' if new_course.assessment_categories.count != 2
+
+          # Delete the default tabs because when the code goes here there's at least 1 tab.
+          if old.owner_type == 'Assessment::Training'
+            # Unscope weight
+            new_course.assessment_categories.unscope(:order).first.tabs.where(title: 'Default').delete_all
+            new_course.assessment_categories.unscope(:order).first.id
+          else
+            old.assessment_categories.unscope(:order).last.tabs.where(title: 'Default').delete_all
+            old.assessment_categories.unscope(:order).last.id
+          end
+        end
+
+        column :updated_at
+        column :created_at
+
+        skip_saving_unless_valid
+
+        store.set(V1::Tab.table_name, old.id, new.id) if new.persisted?
       end
     end
-
-    column :updated_at, null: false
-    column :created_at, null: false
-
-    skip_saving_unless_valid
   end
 end
 

@@ -5,18 +5,18 @@ class CachedWriteStore
   end
 
   def get(namespace, key)
-    key = combined_key(namespace, key)
-    @store[key] || redis_store.get(namespace, key)
+    new_key = combined_key(namespace, key)
+    @store[new_key] || redis_store.get(namespace, key)
   end
 
   def set(namespace, key, value)
-    key = combined_key(namespace, key)
-    @store[key] = value
+    new_key = combined_key(namespace, key)
+    @store[new_key] = value
   end
 
   def has_key?(namespace, key)
-    key = combined_key(namespace, key)
-    @store.has_key?(key) || redis_store.has_key?(namespace, key)
+    new_key = combined_key(namespace, key)
+    @store.has_key?(new_key) || redis_store.has_key?(namespace, key)
   end
 
   def reset(namespace)

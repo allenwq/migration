@@ -1,96 +1,108 @@
-def transform_assessments(course_ids = [])
-  transform_table :assessments,
-                  to: ::Course::Assessment,
-                  default_scope: proc { within_courses(course_ids).includes(:as_assessment) } do
-    primary_key :id
-    column :course_id, to: :course_id, null: false do |old_course_id|
-      V1::Source::Course.transform(old_course_id)
+class AssessmentTable < BaseTable
+  def run
+    V1::Assessment.within_courses(course_ids).includes(:as_assessment).find_in_batches do |batch|
+      migrate_batch(batch)
     end
-    column :title
-    column to: :description do
-      description = ContentParser.parse_mc_tags(source_record.description)
-      description, references = ContentParser.parse_images(source_record, description)
-      self.attachment_references = references if references.any?
-      description
-    end
-    column :exp, to: :base_exp do |exp|
-      exp || 0
-    end
-    column :bonus_exp, to: :time_bonus_exp do |bonus_exp|
-      bonus_exp || 0
-    end
-    column :open_at, to: :start_at
-    column :close_at, to: :end_at
-    column :bonus_cutoff_at, to: :bonus_end_at
-    column :published
-    column to: :autograded do
-      if source_record.as_assessment_type == 'Assessment::Training'
-        true
-      elsif source_record.as_assessment_type == 'Assessment::Mission'
-        false
-      end
-    end
-    column to: :skippable do
-      if source_record.as_assessment_type == 'Assessment::Training'
-        source_record.specific.skippable
-      else
-        false
-      end
-    end
-    column to: :tabbed_view do
-      # display_mode_id: 1 = > single page, 2 => tab
-      if source_record.as_assessment_type == 'Assessment::Mission' && source_record.display_mode_id == 2
-        true
-      else
-        false
-      end
-    end
-    column to: :tab_id do
-      assessment_infer_new_tab_id(source_record, self)
-    end
-    column :creator_id, to: :creator_id do |creator_id|
-      result = V1::Source::User.transform(creator_id)
-      self.updater_id = result
-      result
-    end
-
-    column :file_uploads do |file_uploads|
-      file_uploads.visible.each do |file|
-        attachment = file.transform_attachment_reference
-        if attachment
-          folder.materials.build(attachment_reference: attachment, name: attachment.name,
-                                 created_at: attachment.created_at, updated_at: attachment.updated_at,
-                                 creator_id: attachment.creator_id, updater_id: attachment.updater_id)
-        end
-      end
-    end
-    column :updated_at, to: :updated_at do |old|
-      lesson_plan_item.updated_at = old
-      folder.updated_at = old
-      old
-    end
-    column :created_at, to: :created_at do |old|
-      lesson_plan_item.created_at = old
-      folder.created_at = old
-      old
-    end
-
-    skip_saving_unless_valid
   end
-end
 
-def assessment_infer_new_tab_id(old, new)
-  # Some assessment has a tab id of 0...
-  return V1::Source::Tab.transform(old.tab_id) if old.tab_id && old.tab_id > 0
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment.new
+      migrate(old, new) do
+        column :course_id do
+          id = store.get(V1::Course.table_name, old.course_id)
+          new.folder.course_id = id
+          id
+        end
+        column :title
+        column :description do
+          description = ContentParser.parse_mc_tags(old.description)
+          description, references = ContentParser.parse_images(old, description)
+          new.attachment_references = references if references.any?
+          description
+        end
+        column :base_exp do
+          old.exp || 0
+        end
+        column :time_bonus_exp do
+          old.bonus_exp || 0
+        end
+        column :open_at => :start_at
+        column :close_at => :end_at
+        column :bonus_cutoff_at => :bonus_end_at
+        column :published
+        column :autograded do
+          if old.as_assessment_type == 'Assessment::Training'
+            true
+          elsif old.as_assessment_type == 'Assessment::Mission'
+            false
+          end
+        end
+        column :skippable do
+          if old.as_assessment_type == 'Assessment::Training'
+            old.specific.skippable
+          else
+            false
+          end
+        end
+        column :tabbed_view do
+          # display_mode_id: 1 = > single page, 2 => tab
+          if old.as_assessment_type == 'Assessment::Mission' && old.display_mode_id == 2
+            true
+          else
+            false
+          end
+        end
+        column :tab_id do
+          assessment_infer_new_tab_id(old, new)
+        end
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.creator_id)
+          new.updater_id = result
+          result
+        end
+        column :updated_at do
+          updated_at = old.updated_at
+          new.lesson_plan_item.updated_at = updated_at
+          new.folder.updated_at = updated_at
+          updated_at
+        end
+        column :created_at do
+          created_at = old.created_at
+          new.lesson_plan_item.created_at = created_at
+          new.folder.created_at = created_at
+          created_at
+        end
 
-  # Try to assign to default tab
-  new_course = Course.find(V1::Source::Course.transform(old.course_id))
-  # Training's category in the new course is the first, mission category is the second, so we
-  # need to unscope the default order by weight.
-  if old.as_assessment_type == 'Assessment::Training'
-    new_course.assessment_categories.unscope(:order).first.tabs.first.id
-  elsif old.as_assessment_type == 'Assessment::Mission'
-    new_course.assessment_categories.unscope(:order).last.tabs.first.id
+        old.file_uploads.visible.each do |file|
+          attachment = file.transform_attachment_reference(store)
+          if attachment
+            new.folder.materials.build(attachment_reference: attachment, name: attachment.name,
+                                       created_at: attachment.created_at, updated_at: attachment.updated_at,
+                                       creator_id: attachment.creator_id, updater_id: attachment.updater_id)
+          end
+        end
+
+        skip_saving_unless_valid
+
+        store.set(V1::Assessment.table_name, old.id, new.id)
+      end
+    end
+  end
+
+  def assessment_infer_new_tab_id(old, new)
+    # Some assessment has a tab id of 0...
+    return store.get(V1::Tab.table_name, old.tab_id) if old.tab_id && old.tab_id > 0
+
+    # Try to assign to default tab
+    new_course = Course.find(store.get(V1::Course.table_name, old.course_id))
+    # Training's category in the new course is the first, mission category is the second, so we
+    # need to unscope the default order by weight.
+    if old.as_assessment_type == 'Assessment::Training'
+      new_course.assessment_categories.unscope(:order).first.tabs.first.id
+    elsif old.as_assessment_type == 'Assessment::Mission'
+      new_course.assessment_categories.unscope(:order).last.tabs.first.id
+    end
   end
 end
 
