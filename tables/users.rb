@@ -7,7 +7,7 @@ class UserTable < BaseTable
 
   def migrate_batch(batch)
     batch.each do |old|
-      new_id = V1::User.get_new(old.id)
+      new_id = store.get(V1::User.table_name, old.id)
       if new_id
         fix_timestamps(old, new_id)
         next # Don't migrate if user is memoized.

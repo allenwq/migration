@@ -10,4 +10,5 @@ $url_mapper = UrlHashMapper.new
 
 User.stamper = User.system
 ActsAsTenant.current_tenant = Instance.default
-UserMigrator.new.start
+# UserMigrator.new.start
+CourseMigrator.new(362, concurrency: 4).start

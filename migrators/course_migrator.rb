@@ -6,7 +6,13 @@ class CourseMigrator
   end
 
   def start
-    new_courses = CourseTable.new([@course_id], fix_id: @fix_id).run
+    store = CachedWriteStore.new
+    ::Course.transaction do
+      new_courses = CourseTable.new(store, [@course_id], fix_id: @fix_id).run
+      AchievementTable.new(store, [@course_id]).run
+    end
+    store.persist_to_redis
+
     puts "Course #{@course_id} is migrated to #{new_courses[0]}"
   end
 end

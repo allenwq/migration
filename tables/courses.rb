@@ -1,5 +1,6 @@
 class CourseTable < BaseTable
-  def initialize(ids, options = {})
+  def initialize(store, ids, options = {})
+    super(store)
     @ids = ids
     @fix_id = options[:fix_id].nil? ? true : options[:fix_id]
   end
@@ -9,7 +10,7 @@ class CourseTable < BaseTable
       migrate_batch(batch)
     end
 
-    @ids.map { |id| V1::Course.get_new(id) }
+    @ids.map { |id| store.get(V1::Course.table_name, id) }
   end
 
   def migrate_batch(batch)
@@ -23,7 +24,7 @@ class CourseTable < BaseTable
         end
 
         column :creator_id do
-          V1::User.get_new(old.creator_id)
+          store.get(V1::User.table_name, old.creator_id)
         end
         column :title
         column :description
@@ -56,10 +57,10 @@ class CourseTable < BaseTable
         level.created_at = old.created_at
         level.updated_at = old.updated_at
 
-        skip_save_unless_valid
+        skip_saving_unless_valid
       end
 
-      V1::Course.memoize(old.id, new.id)
+      store.set(V1::Course.table_name, old.id, new.id)
     end
   end
 
@@ -75,8 +76,8 @@ class CourseTable < BaseTable
       title: training_pref.name,
       weight: training_pref.pos,
 
-      creator_id: V1::User.get_new(source.creator_id),
-      updater_id: V1::User.get_new(source.creator_id),
+      creator_id: store.get(V1::User.table_name, source.creator_id),
+      updater_id: store.get(V1::User.table_name, source.creator_id),
       created_at: training_pref.created_at,
       updated_at: training_pref.updated_at
     )
@@ -86,8 +87,8 @@ class CourseTable < BaseTable
       title: mission_pref.name,
       weight: mission_pref.pos,
 
-      creator_id: V1::User.get_new(source.creator_id),
-      updater_id: V1::User.get_new(source.creator_id),
+      creator_id: store.get(V1::User.table_name, source.creator_id),
+      updater_id: store.get(V1::User.table_name, source.creator_id),
       created_at: mission_pref.created_at,
       updated_at: mission_pref.updated_at
     )

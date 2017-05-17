@@ -1,35 +1,42 @@
-def transform_achievements(course_ids = [])
-  transform_table :achievements,
-                  to: ::Course::Achievement,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
+class AchievementTable < BaseTable
+  def run
+    V1::Achievement.where(course_id: @course_ids).find_in_batches do |batch|
+      migrate_batch(batch)
     end
-    column :title
-    column to: :description do
-      ContentParser.parse_mc_tags(source_record.description)
-    end
-    column :icon_url do
-      badge_file = source_record.transform_badge
-      if badge_file
-        self.badge = badge_file
-        badge_file.close unless badge_file.closed?
+  end
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Achievement.new
+
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :title
+        column :description do
+          ContentParser.parse_mc_tags(old.description)
+        end
+        if badge_file = old.transform_badge
+          new.badge = badge_file
+          badge_file.close unless badge_file.closed?
+        end
+        column :published
+        column :weight do
+          old.position || 0
+        end
+        column :creator_id do
+          store.get(V1::User.table_name, old.creator_id)
+        end
+        new.updater_id = new.creator_id
+        column :updated_at
+        column :created_at
+
+        skip_saving_unless_valid
+
+        old.class.memoize(old.id, new.id)
       end
     end
-    column :published
-    column :position, to: :weight do |position|
-      position || 0
-    end
-    column to: :creator_id do
-      result = V1::Source::User.transform(source_record.creator_id)
-      self.updater_id = result
-      result
-    end
-    column :updated_at
-    column :created_at
-
-    skip_saving_unless_valid
   end
 end
 

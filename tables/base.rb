@@ -1,5 +1,8 @@
 class BaseTable
-  def initialize(course_ids = [])
+  attr_reader :store
+
+  def initialize(store, course_ids = [])
+    @store = store
     @course_ids = course_ids
   end
 
@@ -38,8 +41,8 @@ class DSL
     end
   end
 
-  def skip_save_unless_valid
-    @new.save validate: false, if: proc {
+  def skip_saving_unless_valid
+    new.save validate: false, if: proc {
       # Use block for validation if given
       if block_given? && instance_exec(&block)
         true

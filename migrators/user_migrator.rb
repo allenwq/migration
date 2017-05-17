@@ -3,6 +3,6 @@ class UserMigrator
   end
 
   def start
-    UserTable.new.run
+    UserTable.new(RedisStore.instance).run
   end
 end
