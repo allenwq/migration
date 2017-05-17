@@ -13,6 +13,6 @@ class CourseMigrator
     end
     store.persist_to_redis
 
-    puts "Course #{@course_id} is migrated to #{new_courses[0]}"
+    Logger.log "Course #{@course_id} is migrated to #{new_courses[0]}"
   end
 end
