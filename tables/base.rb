@@ -3,11 +3,47 @@ class BaseTable
 
   def initialize(store, course_ids = [])
     @store = store
-    @course_ids = course_ids
+    @course_ids = Array(course_ids)
   end
 
   def migrate(old, new, &block)
     DSL.new(old, new, &block).eval
+  end
+
+  def self.table_name(table_name)
+    @table_name = table_name
+  end
+
+  def self.scope(&block)
+    @scope = block
+  end
+
+  def model
+    name = self.class.instance_variable_get(:@table_name)
+    raise "Table name not defined: #{self.class.name}" unless name
+    @model ||= "V1::#{name.singularize.camelize}".constantize
+  end
+
+  def run
+    time = timer do
+      table = self.class.instance_variable_get(:@table_name)
+      Logger.log("Migrate #{table}...")
+
+      scope = self.class.instance_variable_get(:@scope)
+      model.instance_exec(course_ids, &scope).find_in_batches do |batch|
+        migrate_batch(batch)
+      end
+    end
+
+    Logger.log("finished in #{time.round(1)}s")
+  end
+
+  # Calculate the time of the action
+  def timer
+    start = Time.now
+    yield if block_given?
+
+    Time.now - start
   end
 end
 
@@ -48,8 +84,7 @@ class DSL
     elsif !block_given? && new.valid?
       new.save(validate: false)
     else
-      puts "Invalid #{source_record.class} #{old.primary_key_value}:"\
-      " #{errors.full_messages.to_sentence}"
+      puts "Invalid #{old.class} #{old.primary_key_value}: #{new.errors.full_messages.to_sentence}"
     end
   end
 
