@@ -1,9 +1,6 @@
 class AssessmentTabTable < BaseTable
-  def run
-    V1::Tab.within_courses(course_ids).find_in_batches do |batch|
-      migrate_batch(batch)
-    end
-  end
+  table_name 'tabs'
+  scope { |ids| within_courses(ids) }
 
   def migrate_batch(batch)
     batch.each do |old|
@@ -33,7 +30,7 @@ class AssessmentTabTable < BaseTable
 
         skip_saving_unless_valid
 
-        store.set(V1::Tab.table_name, old.id, new.id) if new.persisted?
+        store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end
   end

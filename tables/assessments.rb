@@ -1,9 +1,6 @@
 class AssessmentTable < BaseTable
-  def run
-    V1::Assessment.within_courses(course_ids).includes(:as_assessment).find_in_batches do |batch|
-      migrate_batch(batch)
-    end
-  end
+  table_name 'assessments'
+  scope { |ids| within_courses(ids).includes(:as_assessment) }
 
   def migrate_batch(batch)
     batch.each do |old|
@@ -85,7 +82,7 @@ class AssessmentTable < BaseTable
 
         skip_saving_unless_valid
 
-        store.set(V1::Assessment.table_name, old.id, new.id)
+        store.set(model.table_name, old.id, new.id)
       end
     end
   end

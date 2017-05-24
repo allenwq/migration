@@ -25,9 +25,9 @@ module V1
     end
 
     # Find the destination question_id through `AssessmentMcqQuestion` mapping
-    def transform_question_id
+    def transform_question_id(store)
       src_coding_id = assessment_answer.assessment_question.as_question_id
-      dst_coding_id = V1::AssessmentCodingQuestion.transform(src_coding_id)
+      dst_coding_id = store.get(V1::AssessmentCodingQuestion.table_name, src_coding_id)
       ::Course::Assessment::Question.
         find_by(actable_id: dst_coding_id,
                 actable_type: ::Course::Assessment::Question::Programming.name).try(:id)

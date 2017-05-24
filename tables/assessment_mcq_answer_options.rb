@@ -1,16 +1,24 @@
-def transform_assessment_mcq_answer_options(course_ids = [])
-  transform_table :assessment_answer_options,
-                  to: ::Course::Assessment::Answer::MultipleResponseOption,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :answer_id do
-      V1::Source::AssessmentMcqAnswer.transform(source_record.answer_id)
-    end
-    column to: :option_id do
-      V1::Source::AssessmentMcqOption.transform(source_record.option_id)
-    end
+class AssessmentMcqAnswerOptionTable < BaseTable
+  table_name 'assessment_answer_options'
+  scope { |ids| within_courses(ids) }
 
-    save validate: false
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::Answer::MultipleResponseOption.new
+      
+      migrate(old, new) do
+        column :answer_id do
+          store.get(V1::AssessmentMcqAnswer.table_name, old.answer_id)
+        end
+        column to: :option_id do
+          store.get(V1::AssessmentMcqOption.table_name, old.option_id)
+        end
+
+        new.save validate: false
+
+        store.set(model.name, old.id, new.id) if new.persisted?
+      end
+    end
   end
 end
 

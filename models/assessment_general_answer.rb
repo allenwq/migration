@@ -24,9 +24,9 @@ module V1
         )
     end
 
-    def transform_question_id
+    def transform_question_id(store)
       src_trq_id = assessment_answer.assessment_question.as_question_id
-      dst_trq_id = ::V1::AssessmentGeneralQuestion.transform(src_trq_id)
+      dst_trq_id = store.get(::V1::AssessmentGeneralQuestion.table_name, src_trq_id)
       ::Course::Assessment::Question.
         find_by(actable_id: dst_trq_id,
                 actable_type: ::Course::Assessment::Question::TextResponse.name).try(:id)

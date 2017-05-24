@@ -1,44 +1,51 @@
-def transform_assessment_mcq_questions(course_ids = [])
-  transform_table :assessment_mcq_questions,
-                  to: ::Course::Assessment::Question::MultipleResponse,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :assessment_id do
-      original_assessment_id = source_record.assessment_question.assessments.first.id
-      V1::Source::Assessment.transform(original_assessment_id)
-    end
-    column to: :title do
-      source_record.assessment_question.title
-    end
-    column to: :description do
-      description = ContentParser.parse_mc_tags(source_record.assessment_question.description)
-      description, references = ContentParser.parse_images(source_record, description)
-      self.question.attachment_references = references if references.any?
-      description
-    end
-    column to: :maximum_grade do
-      source_record.assessment_question.max_grade.to_i
-    end
-    column to: :weight do
-      source_record.assessment_question.question_assessments.first.position || 0
-    end
-    column to: :grading_scheme do
-      # Select all is MRQ in v1, checkboxes are displayed.
-      if source_record.select_all
-        :all_correct
-      else
-        :any_correct
+class AssessmentMcqQuestionTable < BaseTable
+  table_name 'assessment_mcq_questions'
+  scope { |ids| within_courses(ids) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::Question::MultipleResponse.new
+      migrate(old, new) do
+        column :assessment_id do
+          original_assessment_id = old.assessment_question.assessments.first.id
+          store.get(V1::Assessment.table_name, original_assessment_id)
+        end
+        column :title do
+          old.assessment_question.title
+        end
+        column :description do
+          description = ContentParser.parse_mc_tags(old.assessment_question.description)
+          description, references = ContentParser.parse_images(old, description)
+          new.question.attachment_references = references if references.any?
+          description
+        end
+        column :maximum_grade do
+          old.assessment_question.max_grade.to_i
+        end
+        column :weight do
+          old.assessment_question.question_assessments.first.position || 0
+        end
+        column :grading_scheme do
+          # Select all is MRQ in v1, checkboxes are displayed.
+          if old.select_all
+            :all_correct
+          else
+            :any_correct
+          end
+        end
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.assessment_question.creator_id)
+          new.updater_id = result
+          result
+        end
+        column :updated_at
+        column :created_at
+
+        skip_saving_unless_valid
+
+        store.set(V1::AssessmentMcqQuestion.table_name, old.id, new.id) if new.id
       end
     end
-    column to: :creator_id do
-      result = V1::Source::User.transform(source_record.assessment_question.creator_id)
-      self.updater_id = result
-      result
-    end
-    column :updated_at
-    column :created_at
-
-    skip_saving_unless_valid
   end
 end
 

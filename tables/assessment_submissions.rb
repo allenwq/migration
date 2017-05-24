@@ -1,74 +1,78 @@
-def transform_assessment_submissions(course_ids = [])
-  transform_table :assessment_submissions,
-                  to: ::Course::Assessment::Submission,
-                  default_scope: proc { includes(:std_course).within_courses(course_ids) } do
-    primary_key :id
-    column :std_course_id, to: :course_user_id do |std_course_id|
-      V1::Source::UserCourse.transform(std_course_id)
-    end
-    column to: :assessment_id do
-      V1::Source::Assessment.transform(source_record.assessment_id)
-    end
-    column to: :workflow_state do
-      # V1: 'attempting', 'submitted', 'graded'
-      # V2:
-      #   state :attempting
-      #   state :submitted
-      #   state :graded
-      #   state :published
-      case source_record.status
-      when 'graded'
-        :published
-      when 'attempting'
-        :attempting
-      when 'submitted'
-        :submitted
-      end
-    end
-    column to: :points_awarded do
-      source_record.exp_awarded
-    end
-    column to: :submitted_at do
-      if source_record.submitted_at
-        source_record.submitted_at
-      elsif source_record.status == 'submitted' || source_record.status == 'graded'
-        # in case source data is broken, use updated_at as submitted at
-        source_record.updated_at
-      end
-    end
-    column to: :published_at do
-      source_record.published_at
-    end
-    column to: :publisher_id do
-      if source_record.publisher_id
-        V1::Source::User.transform(source_record.publisher_id) || User.deleted.id
-      elsif source_record.status == 'graded'
-        # in V1 the grader_id is nil for trainings
-        ::User.system.id
-      end
-    end
-    column to: :awarder_id do
-      publisher_id
-    end
-    column to: :awarded_at do
-      published_at
-    end
+class AssessmentSubmissionTable < BaseTable
+  table_name 'assessment_submissions'
+  scope { |ids| within_courses(ids).includes(:std_course) }
 
-    column to: :creator_id do
-      result = V1::Source::User.transform(source_record.std_course.user_id)
-      self.updater_id = result
-      result
-    end
-    column :updated_at, to: :updated_at do |old|
-      acting_as.updated_at = old
-      old
-    end
-    column :created_at, to: :created_at do |old|
-      acting_as.created_at = old
-      old
-    end
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::Submission.new
+      
+      migrate(old, new) do
+        column :course_user_id do
+          store.get(V1::UserCourse.table_name, old.std_course_id)
+        end
+        column :assessment_id do
+          store.get(V1::Assessment.table_name, old.assessment_id)
+        end
+        column :workflow_state do
+          # V1: 'attempting', 'submitted', 'graded'
+          # V2:
+          #   state :attempting
+          #   state :submitted
+          #   state :graded
+          #   state :published
+          case old.status
+          when 'graded'
+            :published
+          when 'attempting'
+            :attempting
+          when 'submitted'
+            :submitted
+          end
+        end
+        column :points_awarded do
+          old.exp_awarded
+        end
+        column :submitted_at do
+          if old.submitted_at
+            old.submitted_at
+          elsif old.status == 'submitted' || old.status == 'graded'
+            # in case source data is broken, use updated_at as submitted at
+            old.updated_at
+          end
+        end
+        column :published_at do
+          old.published_at
+        end
+        column :publisher_id do
+          if old.publisher_id
+            store.get(V1::User.table_name, old.publisher_id) || User.deleted.id
+          elsif old.status == 'graded'
+            # in V1 the grader_id is nil for trainings
+            ::User.system.id
+          end
+        end
+        column :awarder_id do
+          new.publisher_id
+        end
+        column :awarded_at do
+          new.published_at
+        end
 
-    skip_saving_unless_valid
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.std_course.user_id)
+          new.updater_id = result
+          result
+        end
+        column :updated_at
+        column :created_at
+
+        new.acting_as.updated_at = old.updated_at
+        new.acting_as.created_at = old.created_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id) if new.persisted?
+      end
+    end
   end
 end
 

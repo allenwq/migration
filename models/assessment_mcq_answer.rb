@@ -25,9 +25,9 @@ module V1
     end
 
     # Find the destination question_id through `AssessmentMcqQuestion` mapping
-    def transform_question_id
+    def transform_question_id(store)
       src_mcq_id = assessment_answer.assessment_question.as_question_id
-      dst_mcq_id = AssessmentMcqQuestion.transform(src_mcq_id)
+      dst_mcq_id = store.get(AssessmentMcqQuestion.table_name, src_mcq_id)
       ::Course::Assessment::Question.
         find_by(actable_id: dst_mcq_id,
                 actable_type: ::Course::Assessment::Question::MultipleResponse.name).try(:id)

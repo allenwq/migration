@@ -1,32 +1,41 @@
-def transform_assessment_mcq_answers(course_ids = [])
-  transform_table :assessment_mcq_answers,
-                  to: ::Course::Assessment::Answer::MultipleResponse,
-                  default_scope: proc { within_courses(course_ids).with_eager_load } do
-    primary_key :id
-    column to: :submission_id do
-      V1::Source::AssessmentSubmission.transform(source_record.submission_id)
-    end
-    column :transform_question_id, to: :question_id
-    column :transform_workflow_state, to: :workflow_state
-    column :transform_submitted_at, to: :submitted_at
-    column :transform_grade, to: :grade
-    column :correct
-    column to: :grader_id do
-      if graded?
-        id = nil
-        if source_record.assessment_answer_grading
-          id = V1::Source::User.transform(source_record.assessment_answer_grading.grader_id)
+class AssessmentMcqAnswerTable < BaseTable
+  table_name 'assessment_mcq_answers'
+  scope { |ids| within_courses(ids).with_eager_load }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::Answer::MultipleResponse.new
+
+      migrate(old, new) do
+        column :submission_id do
+          store.get(V1::AssessmentSubmission.table_name, old.submission_id)
         end
-        id || User::SYSTEM_USER_ID
+        column :question_id do
+          old.transform_question_id(store)
+        end
+        column :transform_workflow_state => :workflow_state
+        column :transform_submitted_at => :submitted_at
+        column :transform_grade => :grade
+        column :correct
+        column :grader_id do
+          if new.graded?
+            id = nil
+            if old.assessment_answer_grading
+              id = store.get(V1::User.table_name, old.assessment_answer_grading.grader_id)
+            end
+            id || User::SYSTEM_USER_ID
+          end
+        end
+        column :transform_graded_at => :graded_at
+        column :updated_at do
+          old.assessment_answer.updated_at
+        end
+        column :transform_created_at => :created_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end
-    column :transform_graded_at, to: :graded_at
-    column to: :updated_at do
-      source_record.assessment_answer.updated_at
-    end
-    column :transform_created_at, to: :created_at
-
-    skip_saving_unless_valid
   end
 end
 

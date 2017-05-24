@@ -9,7 +9,8 @@ module V1
     # In v1 seems only correct answer has gradings
     has_one :assessment_answer_grading, foreign_key: 'answer_id', inverse_of: nil
 
-    def self.transform(src_id_or_object, specific = false)
+    # Takes in src answer id and return the target id
+    def self.get_target_id(src_id_or_object, specific: false)
       return unless src_id_or_object
 
       if src_id_or_object.is_a?(Integer)
@@ -19,7 +20,7 @@ module V1
         src_answer = src_id_or_object
       end
       src_specific_answer = src_answer.as_answer
-      dst_specific_answer_id = src_specific_answer.class.transform(src_specific_answer.id)
+      dst_specific_answer_id = store.get(src_specific_answer.class.table_name, src_specific_answer.id)
 
       type = nil
 

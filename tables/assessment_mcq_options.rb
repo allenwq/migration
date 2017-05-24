@@ -1,22 +1,28 @@
-def transform_assessment_mcq_options(course_ids = [])
-  transform_table :assessment_mcq_options,
-                  to: ::Course::Assessment::Question::MultipleResponseOption,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :question_id, to: :question_id do |question_id|
-      V1::Source::AssessmentMcqQuestion.transform(question_id)
-    end
-    column to: :option do
-      ContentParser.parse_mc_tags(source_record.text)
-    end
-    column :correct
-    column :explanation
-    column to: :weight do
-      # There's no weight in v1, use ID instead
-      source_record.id
-    end
+class AssessmentMcqOptionTable < BaseTable
+  table_name 'assessment_mcq_options'
+  scope { |ids| within_courses(ids) }
 
-    skip_saving_unless_valid
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::Question::MultipleResponseOption.new
+      migrate(old, new) do
+        column :question_id do
+          store.get(V1::AssessmentMcqQuestion.table_name, old.question_id)
+        end
+        column :option do
+          ContentParser.parse_mc_tags(old.text)
+        end
+        column :correct
+        column :explanation
+        column :weight do
+          # There's no weight in v1, use ID instead
+          old.id
+        end
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id) if new.id
+      end
+    end
   end
 end
 
