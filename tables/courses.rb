@@ -1,16 +1,17 @@
 class CourseTable < BaseTable
+  table_name 'courses'
+  scope { |ids| where(id: ids) }
+
   def initialize(store, ids, options = {})
     super(store)
-    @ids = ids
+    @course_ids = Array(ids)
     @fix_id = options[:fix_id].nil? ? true : options[:fix_id]
   end
 
   def run
-    V1::Course.where(id: @ids).find_in_batches do |batch|
-      migrate_batch(batch)
-    end
+    super
 
-    @ids.map { |id| store.get(V1::Course.table_name, id) }
+    course_ids.map { |id| store.get(model.table_name, id) }
   end
 
   def migrate_batch(batch)
@@ -58,9 +59,8 @@ class CourseTable < BaseTable
         level.updated_at = old.updated_at
 
         skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
       end
-
-      store.set(V1::Course.table_name, old.id, new.id)
     end
   end
 

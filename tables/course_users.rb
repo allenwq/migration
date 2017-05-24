@@ -1,31 +1,38 @@
-def transform_course_users(course_ids = [])
-  transform_table :user_courses,
-                  to: ::CourseUser,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :user_id, to: :user_id do |user_id|
-      V1::Source::User.transform(user_id)
-    end
-    column :course_id, to: :course_id do |course_id|
-      V1::Source::Course.transform(course_id)
-    end
-    column :name
-    column :is_phantom, to: :phantom
-    column :role_id, to: :role do |role_id|
-      case role_id
-      when 3
-        :owner
-      when 4
-        :teaching_assistant
-      else
-        :student
+class CourseUserTable < BaseTable
+  table_name 'user_courses'
+  scope { |ids| within_courses(ids) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::CourseUser.new
+
+      migrate(old, new) do
+        column :user_id do
+          store.get(V1::User.table_name, old.user_id)
+        end
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :name
+        column :is_phantom => :phantom
+        column :role do
+          case old.role_id
+          when 3
+            :owner
+          when 4
+            :teaching_assistant
+          else
+            :student
+          end
+        end
+        column :last_active_time => :last_active_at
+        column :updated_at
+        column :created_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end
-    column :last_active_time, to: :last_active_at
-    column :updated_at, null: false
-    column :created_at, null: false
-
-    skip_saving_unless_valid
   end
 end
 
