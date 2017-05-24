@@ -3,8 +3,6 @@ module V1
     self.abstract_class = true
     establish_connection :v1
 
-    extend DatabaseTransform::SchemaTableRecordMapping
-
     def primary_key_value
       if self.class.respond_to?(:primary_keys) && self.class.primary_keys
         self.class.primary_keys.map { |primary_key| self.send primary_key }.join(',')
@@ -15,32 +13,6 @@ module V1
       end
     end
   end
-
-  module RecordMap
-    # Get the old primary key to new key
-    def get_new(old_primary_key)
-      store.get(table_name, old_primary_key)
-    end
-
-    def memoized?(old_primary_key)
-      store.has_key?(table_name, old_primary_key)
-    end
-
-    def memoize(old_primary_key, new_key)
-      return if new_key.nil?
-
-      store.set(table_name, old_primary_key, new_key)
-    end
-
-    def reset
-      store.reset_table(table_name)
-    end
-
-    def store
-      @store ||= RedisStore.new
-    end
-  end
-
 
   # Define models by their table names
   # table name `user_courses` will define a model UserCourse
@@ -71,7 +43,7 @@ module V1
           end
         end
 
-        klass.extend(RecordMap)
+        # klass.extend(RecordMap)
         klass.class_exec(&block) if block
       end)
     end
