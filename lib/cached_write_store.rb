@@ -10,6 +10,8 @@ class CachedWriteStore
   end
 
   def set(namespace, key, value)
+    return if value.nil?
+
     new_key = combined_key(namespace, key)
     @store[new_key] = value
   end
