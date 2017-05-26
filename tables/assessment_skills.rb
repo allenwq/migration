@@ -67,8 +67,6 @@ class AssessmentQuestionSkillTable < BaseTable
 
   def migrate_batch(batch)
     batch.each do |old|
-      next if old.question_deleted? || old.assessment_deleted?
-
       new = QuestionSkill.new
 
       migrate(old, new) do
