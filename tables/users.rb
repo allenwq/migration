@@ -1,9 +1,6 @@
 class UserTable < BaseTable
-  def run
-    V1::User.find_in_batches do |batch|
-      migrate_batch(batch)
-    end
-  end
+  table_name 'users'
+  scope { all }
 
   def migrate_batch(batch)
     batch.each do |old|
@@ -13,7 +10,7 @@ class UserTable < BaseTable
         next # Don't migrate if user is memoized.
       elsif v2_email = User::Email.find_by(email: old.email)
         # If there's already an email, just memoize and return
-        V1::User.memoize(old.id, v2_email.user_id)
+        store.set(model.table_name, old.id, v2_email.user_id)
         next
       end
 
@@ -70,7 +67,7 @@ class UserTable < BaseTable
         end
 
         new.save!(validate: false)
-        old.class.memoize(old.id, new.id)
+        store.set(model.table_name, old.id, new.id)
       end
     end
   end
