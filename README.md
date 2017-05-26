@@ -5,7 +5,6 @@ Migration script from Coursemology v1 to v2.
 Add this line to the application's Gemfile:
 
 ```ruby
-gem 'database_transform'
 gem 'mysql2'
 ```
 
@@ -21,9 +20,6 @@ Clone the files from this repo to Coursemology V2's app folder.
 
 And then:
 ```sh
-$ rake db:transform[v1]
+$ rake migration:start
 ```
 
-## Known Issues
-- Auto graded coding questions does not work, unless manually upload a new package contains the programming files and test cases.
-- Some columns/tables which does not implementated in V2 are dropped (Like scribing questions).
