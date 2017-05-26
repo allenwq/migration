@@ -1,9 +1,20 @@
 class BaseTable
-  attr_reader :store, :course_ids
+  attr_reader :store, :course_ids, :concurrency
 
-  def initialize(store, course_ids = [])
+  def initialize(store, course_ids = [], concurrency)
     @store = store
     @course_ids = Array(course_ids)
+    @concurrency = concurrency
+    setup_tenant_and_stamper
+
+    if concurrency > 1
+      @worker = ProcessPool.new(concurrency)
+
+      @worker.around_job do |&job|
+        setup_tenant_and_stamper
+        job.call
+      end
+    end
   end
 
   def migrate(old, new, &block)
@@ -29,13 +40,45 @@ class BaseTable
       table = self.class.instance_variable_get(:@table_name)
       Logger.log("Migrate #{table}...")
 
-      scope = self.class.instance_variable_get(:@scope)
-      model.instance_exec(course_ids, &scope).find_in_batches do |batch|
-        migrate_batch(batch)
+      if process_in_batches?
+        source_records.find_in_batches do |batch|
+          process_batch(batch)
+        end
+      else
+        process_batch(source_records)
       end
+
+      @worker.wait if @worker
     end
 
-    Logger.log("finished in #{time.round(1)}s")
+    Logger.log("Finished in #{time.round(1)}s")
+  end
+
+  # Rollback the changes in Redis in case of failure
+  # Only required for concurrency environment
+  def rollback
+    source_records.pluck(:id).each do |id|
+      store.del(model.table_name, id)
+    end
+  end
+
+  def source_records
+    model.instance_exec(course_ids, &model_scope)
+  end
+
+  def setup_tenant_and_stamper
+    User.stamper = User.system
+    ActsAsTenant.current_tenant = Instance.default
+  end
+
+  def process_in_batches?
+    source_records.respond_to?(:find_in_batches)
+  end
+
+  private
+
+  def model_scope
+    self.class.instance_variable_get(:@scope)
   end
 
   # Calculate the time of the action
@@ -44,6 +87,15 @@ class BaseTable
     yield if block_given?
 
     Time.now - start
+  end
+
+  def process_batch(batch)
+    if concurrency <= 1
+      migrate_batch(batch)
+    else
+      # Use worker to split jobs if concurrency is great than 1
+      @worker.schedule { migrate_batch(batch) }
+    end
   end
 end
 
@@ -77,14 +129,14 @@ class DSL
     end
   end
 
-  def skip_saving_unless_valid
+  def skip_saving_unless_valid(&block)
     # Use block for validation if given
     if block_given? && new.instance_exec(&block)
       new.save(validate: false)
     elsif !block_given? && new.valid?
       new.save(validate: false)
     else
-      puts "Invalid #{old.class} #{old.primary_key_value}: #{new.errors.full_messages.to_sentence}"
+      Logger.log "Invalid #{old.class} #{old.primary_key_value}: #{new.errors.full_messages.to_sentence}"
     end
   end
 

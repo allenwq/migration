@@ -18,6 +18,11 @@ class RedisStore
     @store.set(key, value)
   end
 
+  def del(namespace, key)
+    new_key = combined_key(namespace, key)
+    @store.del(new_key)
+  end
+
   def has_key?(namespace, key)
     key = combined_key(namespace, key)
     @store.exists(key)
