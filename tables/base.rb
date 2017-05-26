@@ -75,6 +75,20 @@ class BaseTable
     source_records.respond_to?(:find_in_batches)
   end
 
+  protected
+
+  def ensure_db_connection
+    conn = ActiveRecord::Base.connection
+    begin
+      try ||= 3
+      conn.reconnect!
+    rescue
+      try -= 1
+      # There is a issue where connection closed unexpectedly, need retry
+      retry if try > 0
+    end
+  end
+
   private
 
   def model_scope

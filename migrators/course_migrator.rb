@@ -111,6 +111,7 @@ class CourseMigrator
         SurveyQuestionOptionTable,
         SurveyResponseTable,
         SurveyTextAnswerTable,
+        SurveyMrqAnswerTable,
 
       ].map { |t| t.new(store, course_id, concurrency) }
 

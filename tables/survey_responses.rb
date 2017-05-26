@@ -48,21 +48,6 @@ class SurveyResponseTable < BaseTable
           end
         end
 
-        # Migrate MRQ answers, V1 MRQ answers are equal to answer_options in v2, must migrate here to make sure it's thread safe
-        # TODO: wait for survey to change the schema
-        # old.mrq_answers.group_by(&:question_id).each do |pair|
-        #   question_id = store.get(V1::SurveyQuestion.table_name, pair[0])
-        #   old_answers = pair[1]
-        #   selected_option_ids = old_answers.map do |a|
-        #     V1::SurveyQuestionOption.transform(a.option_id)
-        #   end
-        #   new_question = ::Course::Survey::Question.find(question_id)
-        #   answer = new.answers.build(question_id: question_id)
-        #   new_question.option_ids.each do |id|
-        #     answer.options.build(question_option_id: id, selected: selected_option_ids.include?(id))
-        #   end
-        # end
-
         skip_saving_unless_valid
 
         store.set(model.table_name, old.id, new.id)

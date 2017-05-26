@@ -32,37 +32,53 @@ class SurveyTextAnswerTable < BaseTable
   end
 end
 
-class SurveyMrqAnswerOptionTable < BaseTable
+class SurveyMrqAnswerTable < BaseTable
   table_name 'survey_mrq_answers'
   scope { |ids| within_courses(ids).includes(:user_course) }
 
+  def run
+    ensure_db_connection if @concurrency > 1
+    super
+  end
+
   def migrate_batch(batch)
-    #TODO: create mrq answers
-    # batch.each do |old|
-    #   new = ::Course::Survey::AnswerOption.new
-    #
-    #   migrate(old, new) do
-    #     column :question_id do |old|
-    #       store.get(V1::SurveyQuestion.table_name, old.question_id)
-    #     end
-    #     column :response_id do
-    #       store.get(V1::SurveySubmission.table_name, old.survey_submission_id)
-    #     end
-    #     column :creator_id do
-    #       store.get(V1::User.table_name, old.user_course.user_id)
-    #     end
-    #     column :updater_id do
-    #       new.creator_id
-    #     end
-    #
-    #     column :created_at
-    #     column :updated_at
-    #
-    #     skip_saving_unless_valid
-    #
-    #     store.set(model.table_name, old.id, new.id)
-    #   end
-    # end
+    batch.each do |old|
+      new = ::Course::Survey::AnswerOption.new
+
+      migrate(old, new) do
+        column :answer_id do
+          find_or_create_answer(old).id
+        end
+        column :question_option_id do
+          store.get(V1::SurveyQuestionOption.table_name, old.option_id)
+        end
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
+  end
+
+  def find_or_create_answer(old)
+    question_id = store.get(V1::SurveyQuestion.table_name, old.question_id)
+    response_id = store.get(V1::SurveySubmission.table_name, old.survey_submission_id)
+
+    exiting_answer = ::Course::Survey::Answer.find_by(question_id: question_id, response_id: response_id)
+    return exiting_answer if exiting_answer
+
+    ::Course::Survey::Answer.create!(
+      question_id: question_id,
+      response_id: response_id,
+      creator_id: store.get(V1::User.table_name, old.user_course.user_id),
+      updater_id: store.get(V1::User.table_name, old.user_course.user_id),
+      created_at: old.created_at,
+      updated_at: old.updated_at
+    )
+  end
+
+  def concurrency
+    # Do not migrate MRQ answer concurrently, since creating of answers are not thread safe.
+    1
   end
 end
 
@@ -82,7 +98,6 @@ end
 # create_table "course_survey_answer_options", force: :cascade do |t|
 #   t.integer "answer_id",          :null=>false, :index=>{:name=>"fk__course_survey_answer_options_answer_id"}, :foreign_key=>{:references=>"course_survey_answers", :name=>"fk_course_survey_answer_options_answer_id", :on_update=>:no_action, :on_delete=>:no_action}
 #   t.integer "question_option_id", :null=>false, :index=>{:name=>"fk__course_survey_answer_options_question_option_id"}, :foreign_key=>{:references=>"course_survey_question_options", :name=>"fk_course_survey_answer_options_question_option_id", :on_update=>:no_action, :on_delete=>:no_action}
-#   t.boolean "selected",           :default=>false, :null=>false
 # end
 
 # V1
