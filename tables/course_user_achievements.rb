@@ -1,19 +1,26 @@
-def transform_course_user_achievements(course_ids = [])
-  transform_table :user_achievements,
-                  to: ::Course::UserAchievement,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :course_user_id do
-      V1::Source::UserCourse.transform(source_record.user_course_id)
-    end
-    column to: :achievement_id do
-      V1::Source::Achievement.transform(source_record.achievement_id)
-    end
-    column :obtained_at
-    column :created_at
-    column :updated_at
+class UserAchievementTable < BaseTable
+  table_name 'user_achievements'
+  scope { |ids| within_courses(ids) }
 
-    skip_saving_unless_valid
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::UserAchievement.new
+
+      migrate(old, new) do
+        column :course_user_id do
+          store.get(V1::UserCourse.table_name, old.user_course_id)
+        end
+        column :achievement_id do
+          store.get(V1::Achievement.table_name, old.achievement_id)
+        end
+        column :obtained_at
+        column :created_at
+        column :updated_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

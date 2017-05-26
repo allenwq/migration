@@ -8,7 +8,7 @@ Dir[File.dirname(__FILE__) + '/tables/*.rb'].each { |file| require file }
 
 $url_mapper = UrlHashMapper.new
 
-User.stamper = User.system
-ActsAsTenant.current_tenant = Instance.default
-# UserMigrator.new.start
-CourseMigrator.new(362, concurrency: 4).start
+unless defined? Rails::Console
+  UserMigrator.new.start
+  CourseMigrator.new(362, concurrency: 4, fix_id: false).start
+end

@@ -7,12 +7,10 @@ module V1
 
     scope :within_courses, ->(course_ids) do
       course_ids = Array(course_ids)
+      # filter out tags with deleted assessments, there are assessments with deleted_at set and questions of them are not migrated.
+      joins(question: { question_assessments: :assessment }).
       joins('INNER JOIN tags ON tags.id = tag_id INNER JOIN tag_groups ON tags.tag_group_id = tag_groups.id').
         where("tag_groups.course_id IN (#{course_ids.join(', ')})")
-    end
-
-    def question_deleted?
-      !question || question.question_assessments.empty?
     end
   end
 end

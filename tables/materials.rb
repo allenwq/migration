@@ -1,81 +1,89 @@
-def transform_materials(course_ids = [])
-  transform_table :material_folders,
-                  to: ::Course::Material::Folder,
-                  default_scope: proc { within_courses(course_ids).tsort } do
-    primary_key :id
-    column to: :parent_id do
-      if source_record.parent_folder_id
-        dst_id = V1::Source::MaterialFolder.transform(source_record.parent_folder_id)
-        if dst_id.blank?
-          puts "Cannot find parent for #{source_record.class.name} #{source_record.id}"
+class MaterialFolderTable < BaseTable
+  table_name 'material_folders'
+  scope { |ids| within_courses(ids).tsort }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Material::Folder.new
+      
+      migrate(old, new) do
+        column :parent_id do
+          if old.parent_folder_id
+            dst_id = store.get(V1::MaterialFolder.table_name, old.parent_folder_id)
+            if dst_id.blank?
+              Logger.log "Cannot find parent for #{old.class.name} #{old.id}"
+            end
+            dst_id
+          end
         end
-        dst_id
+
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :name do
+          Pathname.normalize_filename(old.name)
+        end
+        column :description
+        column :can_student_upload
+        column :start_at do
+          old.open_at || old.created_at
+        end
+        column :close_at => :end_at
+        column :created_at
+        column :updated_at
+
+        if !old.parent_folder_id
+          # For root folder we just ignore and use course's default root folder.
+          store.set(model.table_name, old.id, new.course.root_folder.id)
+        elsif new.parent_id && new.valid?
+          new.save(validate: false)
+          store.set(model.table_name, old.id, new.id)
+        elsif new.parent
+          # Merge duplicate folders
+          other = new.parent.children.find_by(name: new.name)
+          store.set(model.table_name, old.id, other.id) if other
+        else
+          Logger.log "Invalid #{old.class} #{old.primary_key_value}: #{errors.full_messages.to_sentence}"
+        end
       end
     end
-
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
-    end
-    column to: :name do
-      Pathname.normalize_filename(source_record.name)
-    end
-    column :description
-    column :can_student_upload
-    column to: :start_at do
-      source_record.open_at || source_record.created_at
-    end
-    column :close_at, to: :end_at
-    column :created_at
-    column :updated_at
-
-    save validate: false, if: proc {
-      if !source_record.parent_folder_id
-        # For root folder we just ignore and use course's default root folder.
-        source_record.class.memoize_transform(source_record.id, course.root_folder.id)
-        false
-      elsif parent_id && valid?
-        true
-      elsif parent
-        # Merge duplicate folders
-        other = parent.children.find_by(name: name)
-        source_record.class.memoize_transform(source_record.id, other.id) if other
-        false
-      else
-        puts "Invalid #{source_record.class} #{source_record.primary_key_value}:"\
-        " #{errors.full_messages.to_sentence}"
-        false
-      end
-    }
   end
+end
 
-  transform_table :materials,
-                  to: ::Course::Material,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :folder_id do
-      V1::Source::MaterialFolder.transform(source_record.folder_id)
-    end
-    column to: :name do
-      source_record.transform_name
-    end
-    column to: :attachment_reference do
-      source_record.file_upload.transform_attachment_reference
-    end
-    column :description
-    column :transform_creator_id, to: :creator_id
-    column :transform_creator_id, to: :updater_id
-    column :created_at
-    column :updated_at
+class MaterialTable < BaseTable
+  table_name 'materials'
+  scope { |ids| within_courses(ids) }
 
-    before_save do |old, new|
-      if new.attachment_reference
-        true
-      else
-        false
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Material.new
+
+      migrate(old, new) do
+        column :folder_id do
+          store.get(V1::MaterialFolder.table_name, old.folder_id)
+        end
+        column :name do
+          old.transform_name
+        end
+        column :attachment_reference do
+          old.file_upload.transform_attachment_reference(store)
+        end
+        column :description
+        column :creator_id do
+          old.transform_creator_id(store)
+        end
+        column :updater_id do
+          new.creator_id
+        end
+        column :created_at
+        column :updated_at
+
+        if new.attachment_reference
+          skip_saving_unless_valid
+          store.set(model.table_name, old.id, new.id)
+        end
       end
     end
-
-    skip_saving_unless_valid
   end
 end
 

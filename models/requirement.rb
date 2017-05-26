@@ -16,12 +16,12 @@ module V1
         includes(:obj, :req)
     end
 
-    def transform_actable
+    def transform_actable(store)
       case req_type
       when 'Achievement'
-        ::Course::Condition::Achievement.new(achievement_id: Achievement.transform(req_id))
+        ::Course::Condition::Achievement.new(achievement_id: store.get(Achievement.table_name, req_id))
       when 'Level'
-        dst_lvl_id = Level.transform(req_id)
+        dst_lvl_id = store.get(Level.table_name, req_id)
         lvl_number = nil
         lvl_number = ::Course::Level.find(dst_lvl_id).level_number if dst_lvl_id
         if lvl_number
@@ -30,7 +30,7 @@ module V1
           nil
         end
       when 'AsmReq'
-        dst_assessment_id = Assessment.transform(req.asm_id)
+        dst_assessment_id = store.get(Assessment.table_name, req.asm_id)
         percent = req.min_grade.to_f # min_grade is a percent, not grade.
         ::Course::Condition::Assessment.new(assessment_id: dst_assessment_id,
                                             minimum_grade_percentage: percent)

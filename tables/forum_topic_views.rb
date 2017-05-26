@@ -1,24 +1,32 @@
-def transform_forum_topic_views(course_ids = [])
-  transform_table :forum_topic_views,
-                  to: ::Course::Forum::Topic::View,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :topic_id do
-      V1::Source::ForumTopic.transform(source_record.topic_id)
-    end
-    column to: :user_id do
-      dst_course_user_id = V1::Source::UserCourse.transform(source_record.user_id)
-      ::CourseUser.find_by(id: dst_course_user_id).try(:user_id) || ::User::DELETED_USER_ID
-    end
-    column :created_at
-    column :updated_at
+class ForumTopicViewTable < BaseTable
+  table_name 'forum_topic_views'
+  scope { |ids| within_courses(ids) }
 
-    skip_saving_unless_valid do
-      # Improve performance
-      if topic_id && user_id
-        true
-      else
-        valid?
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Forum::Topic::View.new
+
+      migrate(old, new) do
+        column :topic_id do
+          store.get(V1::ForumTopic.table_name, old.topic_id)
+        end
+        column :user_id do
+          dst_course_user_id = store.get(V1::UserCourse.table_name, old.user_id)
+          ::CourseUser.find_by(id: dst_course_user_id).try(:user_id) || ::User::DELETED_USER_ID
+        end
+        column :created_at
+        column :updated_at
+
+        skip_saving_unless_valid do
+          # Improve performance
+          if topic_id && user_id
+            true
+          else
+            valid?
+          end
+        end
+        
+        store.set(model.table_name, old.id, new.id)
       end
     end
   end

@@ -1,94 +1,119 @@
-def transform_assessment_comments(course_ids = [])
-  transform_table :comment_topics,
-                  to: ::Course::Assessment::SubmissionQuestion,
-                  default_scope: proc { within_courses(course_ids) } do
-    before_transform do |old|
+class CommentTopicTable < BaseTable
+  table_name 'comment_topics'
+  scope { |ids| within_courses(ids) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::SubmissionQuestion.new
+
       if old.topic.present?
         sq = ::Course::Assessment::SubmissionQuestion.find_by(submission_id: old.transform_submission_id, question_id: old.transform_question_id)
         if sq
           # Memorize the result if target exists
-          old.class.memoize_transform(old.id, sq.id)
-          false
-        else
-          true
+          store.set(model.table_name, old.id, sq.id)
+          next
         end
       else
-        false
+        next
+      end
+
+      migrate(old, new) do
+        column :course_id do
+          old.transform_course_id(store)
+        end
+        column :pending => :pending_staff_reply
+        column :submission_id do
+          old.transform_submission_id(store)
+        end
+        column :question_id do
+          old.transform_question_id(store)
+        end
+
+        column :created_at
+        column :updated_at
+
+        new.acting_as.created_at = old.created_at
+        # Topic updated time should be set to the last commented at
+        new.acting_as.updated_at = old.last_commented_at || old.updated_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, sq.id)
       end
     end
-
-    primary_key :id
-    column :transform_course_id, to: :course_id
-    column :pending, to: :pending_staff_reply
-    column :transform_submission_id, to: :submission_id
-    column :transform_question_id, to: :question_id
-
-    column :created_at, to: :created_at do |old|
-      acting_as.created_at = old
-      old
-    end
-    column to: :updated_at do
-      # Topic updated time should be set to the last commented at
-      acting_as.updated_at = source_record.last_commented_at || source_record.updated_at
-      source_record.updated_at
-    end
-
-    skip_saving_unless_valid
-  end
-
-  transform_table :comments,
-                  to: ::Course::Discussion::Post,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :transform_topic_id, to: :topic_id
-    column to: :title do
-      '(No Title)'
-    end
-    column to: :text do
-      ContentParser.parse_mc_tags(source_record.text)
-    end
-    column to: :creator_id do
-      result = source_record.transform_creator_id
-      self.updater_id = result
-      result
-    end
-    column :created_at
-    column :updated_at
-
-    skip_saving_unless_valid
-  end
-
-  transform_table :annotations,
-                  to: ::Course::Discussion::Post,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :topic do
-      file = source_record.transform_file
-      if file
-        new_course_id = V1::Source::Course.transform(source_record.assessment_answer.std_course.course_id)
-        Course::Assessment::Answer::ProgrammingFileAnnotation.new(
-          file: file, line: source_record.line_start, course_id: new_course_id,
-          created_at: source_record.created_at, updated_at: source_record.updated_at
-        ).discussion_topic
-      end
-    end
-    column to: :title do
-      '(No Title)'
-    end
-    column to: :text do
-      ContentParser.parse_mc_tags(source_record.text)
-    end
-    column to: :creator_id do
-      result = source_record.transform_creator_id
-      self.updater_id = result
-      result
-    end
-    column :created_at
-    column :updated_at
-
-    skip_saving_unless_valid
   end
 end
+
+class AssessmentCommentTable < BaseTable
+  table_name 'comments'
+  scope { |ids| within_courses(ids) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Discussion::Post
+
+      migrate(old, new) do
+        column :topic_id do
+          old.transform_topic_id(store)
+        end
+        column :title do
+          'Untitled'
+        end
+        column :text do
+          ContentParser.parse_mc_tags(old.text)
+        end
+        column :creator_id do
+          old.transform_creator_id(store)
+        end
+        new.updater_id = new.creator_id
+        column :created_at
+        column :updated_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, sq.id)
+      end
+    end
+  end
+end
+
+class AssessmentAnnotationTable < BaseTable
+  table_name 'annotations'
+  scope { |ids| within_courses(ids) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Discussion::Post
+
+      migrate(old, new) do
+        column :topic do
+          file = old.transform_file(store)
+          if file
+            new_course_id = store.get(V1::Course.table_name, old.assessment_answer.std_course.course_id)
+            Course::Assessment::Answer::ProgrammingFileAnnotation.new(
+              file: file, line: old.line_start, course_id: new_course_id,
+              created_at: old.created_at, updated_at: old.updated_at
+            ).discussion_topic
+          end
+        end
+        column :title do
+          'Untitled'
+        end
+        column :text do
+          ContentParser.parse_mc_tags(old.text)
+        end
+        column :creator_id do
+          old.transform_creator_id(store)
+        end
+        new.updater_id = new.creator_id
+        column :created_at
+        column :updated_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, sq.id)
+      end
+    end
+  end
+end
+
 
 # Schema
 #

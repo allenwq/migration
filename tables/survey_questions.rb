@@ -1,59 +1,69 @@
-def transform_survey_questions(course_ids = [])
-  transform_table :survey_questions,
-                  to: ::Course::Survey::Question,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :survey_section_id, to: :section_id do |id|
-      V1::Source::SurveySection.transform(id)
-    end
-    column :type_id, to: :question_type do |id|
-      # V2 types
-      # question_type: { text: 0, multiple_choice: 1, multiple_response: 2 }
-      case id
-      when 1
-        :multiple_choice
-      when 2
-        :multiple_response
-      when 3
-        :text
+class SurveyQuestionTable < BaseTable
+  table_name 'survey_questions'
+  scope { |ids| within_courses(ids) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Survey::Question.new
+
+      migrate(old, new) do
+        column :section_id do
+          store.get(V1::SurveySection.table_name, old.survey_section_id)
+        end
+        column :question_type do
+          # V2 types
+          # question_type: { text: 0, multiple_choice: 1, multiple_response: 2 }
+          case old.type_id
+          when 1
+            :multiple_choice
+          when 2
+            :multiple_response
+          when 3
+            :text
+          end
+        end
+        column :description do
+          old.description || ''
+        end
+        column :weight do
+          old.pos || -1
+        end
+        column :is_required => :required
+        column :max_response => :max_options
+
+        column :updated_at
+        column :created_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
       end
     end
-    column :description, to: :description do |title|
-      title || ''
-    end
-    column :pos, to: :weight do |pos|
-      pos || -1
-    end
-    column :is_required, to: :required
-    column :max_response, to: :max_options
-
-    column :updated_at
-    column :created_at
-
-    skip_saving_unless_valid
   end
 end
 
-def transform_survey_question_options(course_ids = [])
-  transform_table :survey_question_options,
-                  to: ::Course::Survey::QuestionOption,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :question_id, to: :question_id do |id|
-      V1::Source::SurveyQuestion.transform(id)
-    end
-    column :description, to: :option do |description|
-      description || ''
-    end
-    column :pos, to: :weight do |pos|
-      pos || -1
-    end
+class SurveyQuestionOptionTable < BaseTable
+  table_name 'survey_question_options'
+  scope { |ids| within_courses(ids) }
 
-    # Consider adding timestamps in v2..
-    # column :updated_at
-    # column :created_at
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Survey::QuestionOption.new
 
-    skip_saving_unless_valid
+      migrate(old, new) do
+        column :question_id do
+          store.get(V1::SurveyQuestion.table_name, old.question_id)
+        end
+        column :option do
+          old.description || ''
+        end
+        column :weight do
+          old.pos || -1
+        end
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

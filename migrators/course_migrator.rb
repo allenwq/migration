@@ -76,6 +76,12 @@ class CourseMigrator
         LessonPlanMilestoneTable,
         LessonPlanEventTable,
 
+        ForumTable,
+        ForumTopicTable,
+        ForumTopicViewTable,
+        ForumPostTable,
+        ForumPostVoteTable,
+
         AssessmentTabTable,
         AssessmentTable,
         AssessmentMcqQuestionTable,
@@ -88,6 +94,23 @@ class CourseMigrator
         AssessmentMcqAnswerOptionTable,
         AssessmentTrqAnswerTable,
         AssessmentProgrammingAnswerTable,
+
+        AssessmentSkillGroupTable,
+        AssessmentSkillTable,
+        AssessmentQuestionSkillTable,
+
+        ConditionTable,
+        AssessmentConditionTable,
+
+        MaterialFolderTable,
+        MaterialTable,
+
+        SurveyTable,
+        SurveySectionTable,
+        SurveyQuestionTable,
+        SurveyQuestionOptionTable,
+        SurveyResponseTable,
+        SurveyTextAnswerTable,
 
       ].map { |t| t.new(store, course_id, concurrency) }
 
@@ -105,6 +128,46 @@ class CourseMigrator
       try -= 1
       # There is a issue where connection closed unexpectedly, need retry
       retry if try > 0
+    end
+  end
+
+  def move_course_to_instance(course, instance)
+    Logger.log "Moving course #{course.id} to #{instance.host} ..."
+
+    # Move users belongs to courses in the instance to the instance.
+    user_ids_to_move = course.users.select(:id)
+    InstanceUser.where(user_id: user_ids_to_move).each do |instance_user|
+      instance_user.update_column(:instance_id, instance.id)
+    end
+
+    course.update_column(:instance_id, instance.id)
+  end
+
+  # There are annotations of same file and line, this is to merge them into one.
+  def merge_annotation_topics(course_ids)
+    Logger.log "Merging annotation topics for course #{course_ids.join(', ')}"
+
+    course_ids.each do |course_id|
+      ids = Course::Assessment::Answer::ProgrammingFileAnnotation.joins(:discussion_topic).
+        where("course_discussion_topics.course_id = #{course_id}").pluck(:id)
+      duplicate_ids = Course::Assessment::Answer::ProgrammingFileAnnotation.where(id: ids).
+        select([:line, :file_id]).group(:line, :file_id).having('count(*) > 1').to_a
+      duplicate_ids.each do |attr|
+        do_merge(attr.file_id, attr.line)
+      end
+    end
+  end
+
+  def do_merge(file_id, line)
+    annotations = Course::Assessment::Answer::ProgrammingFileAnnotation.where(file_id: file_id, line: line)
+
+    original = annotations[0]
+    duplicated = annotations[1..-1]
+    duplicated.each do |annotation|
+      annotation.posts.each do |post|
+        post.update_column(:topic_id, original.acting_as.id)
+      end
+      annotation.delete
     end
   end
 end

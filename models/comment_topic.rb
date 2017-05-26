@@ -10,16 +10,16 @@ module V1
       where(topic_type: 'Assessment::Answer').where(course_id: Array(course_ids)).includes(:topic)
     end
 
-    def transform_course_id
-      Course.transform(course_id)
+    def transform_course_id(store)
+      store.get(Course.table_name, course_id)
     end
 
-    def transform_submission_id
-      AssessmentSubmission.transform(topic.submission_id)
+    def transform_submission_id(store)
+      store.get(AssessmentSubmission.table_name, topic.submission_id)
     end
 
-    def transform_question_id
-      AssessmentQuestion.transform(topic.question_id)
+    def transform_question_id(store)
+      store.get(AssessmentQuestion.table_name, topic.question_id)
     end
   end
 end

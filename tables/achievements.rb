@@ -1,9 +1,6 @@
 class AchievementTable < BaseTable
-  def run
-    V1::Achievement.where(course_id: @course_ids).find_in_batches do |batch|
-      migrate_batch(batch)
-    end
-  end
+  table_name 'achievements'
+  scope { |ids| where(course_id: ids) }
 
   def migrate_batch(batch)
     batch.each do |old|
@@ -34,7 +31,7 @@ class AchievementTable < BaseTable
 
         skip_saving_unless_valid
 
-        old.class.memoize(old.id, new.id)
+        store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end
   end

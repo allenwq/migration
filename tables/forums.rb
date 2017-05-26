@@ -1,23 +1,31 @@
-def transform_forums(course_ids = [])
-  transform_table :forum_forums,
-                  to: ::Course::Forum,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
-    end
-    column :name
-    column :description
+class ForumTable < BaseTable
+  table_name 'forum_forums'
+  scope { |ids| within_courses(ids) }
 
-    column to: :created_at do
-      Time.zone.now
-    end
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Forum.new
 
-    column to: :updated_at do
-      Time.zone.now
-    end
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :name
+        column :description
 
-    skip_saving_unless_valid
+        column :created_at do
+          Time.zone.now
+        end
+
+        column :updated_at do
+          Time.zone.now
+        end
+
+        skip_saving_unless_valid
+
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

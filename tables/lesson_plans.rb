@@ -1,62 +1,80 @@
-def transform_lesson_plans(course_ids = [])
-  transform_table :lesson_plan_milestones,
-                  to: ::Course::LessonPlan::Milestone,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
-    end
-    column :title
-    column :description
-    column :start_at
-    column to: :creator_id do
-      result = V1::Source::User.transform(source_record.creator_id)
-      self.updater_id = result
-      result
-    end
+class LessonPlanMilestoneTable < BaseTable
+  table_name 'lesson_plan_milestones'
+  scope { |ids| within_courses(ids) }
 
-    column to: :created_at do
-      Time.zone.now
-    end
-    column to: :updated_at do
-      Time.zone.now
-    end
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::LessonPlan::Milestone.new
+      
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :title
+        column :description
+        column :start_at
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.creator_id)
+          new.updater_id = result
+          result
+        end
 
-    skip_saving_unless_valid
+        column :created_at do
+          Time.zone.now
+        end
+        column :updated_at do
+          Time.zone.now
+        end
+
+        skip_saving_unless_valid
+        
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
+end
 
-  transform_table :lesson_plan_entries,
-                  to: ::Course::LessonPlan::Event,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
-    end
-    column to: :event_type do
-      source_record.transform_entry_type
-    end
-    column :title
-    column :description
-    column :location
-    column :start_at
-    column :end_at
-    column to: :published do
-      true
-    end
-    column to: :creator_id do
-      result = V1::Source::User.transform(source_record.creator_id)
-      self.updater_id = result
-      result
-    end
+class LessonPlanEventTable < BaseTable
+  table_name 'lesson_plan_entries'
+  scope { |ids| within_courses(ids) }
 
-    column to: :created_at do
-      Time.zone.now
-    end
-    column to: :updated_at do
-      Time.zone.now
-    end
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::LessonPlan::Event.new
 
-    skip_saving_unless_valid
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :event_type do
+          old.transform_entry_type
+        end
+        column :title
+        column :description
+        column :location
+        column :start_at
+        column :end_at
+        column :published do
+          true
+        end
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.creator_id)
+          new.updater_id = result
+          result
+        end
+
+        column :created_at do
+          Time.zone.now
+        end
+        column :updated_at do
+          Time.zone.now
+        end
+
+        skip_saving_unless_valid
+
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

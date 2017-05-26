@@ -1,50 +1,69 @@
-def transform_survey_answers(course_ids = [])
-  transform_table :survey_essay_answers,
-                  to: ::Course::Survey::Answer,
-                  default_scope: proc { within_courses(course_ids).includes(:user_course) } do
-    primary_key :id
-    column :question_id, to: :question_id do |old|
-      V1::Source::SurveyQuestion.transform(old)
-    end
-    column :survey_submission_id, to: :response_id do |old|
-      V1::Source::SurveySubmission.transform(old)
-    end
-    column :text, to: :text_response
-    column to: :creator_id do
-      V1::Source::User.transform(source_record.user_course.user_id)
-    end
-    column to: :updater_id do
-      creator_id
-    end
+class SurveyTextAnswerTable < BaseTable
+  table_name 'survey_essay_answers'
+  scope { |ids| within_courses(ids).includes(:user_course) }
 
-    column :created_at
-    column :updated_at
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Survey::Answer.new
+      
+      migrate(old, new) do
+        column :question_id do
+          store.get(V1::SurveyQuestion.table_name, old.question_id)
+        end
+        column :response_id do
+          store.get(V1::SurveySubmission.table_name, old.survey_submission_id)
+        end
+        column :text => :text_response
+        column :creator_id do
+          store.get(V1::User.table_name, old.user_course.user_id)
+        end
+        column :updater_id do
+          new.creator_id
+        end
 
-    skip_saving_unless_valid
+        column :created_at
+        column :updated_at
+
+        skip_saving_unless_valid
+        
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
-  #
-  # transform_table :survey_mrq_answers,
-  #                 to: ::Course::Survey::AnswerOption,
-  #                 default_scope: proc { within_courses(course_ids).includes(:user_course) } do
-  #   primary_key :id
-  #   column :question_id, to: :question_id do |old|
-  #     V1::Source::SurveyQuestion.transform(old)
-  #   end
-  #   column :survey_submission_id, to: :response_id do |old|
-  #     V1::Source::SurveySubmission.transform(old)
-  #   end
-  #   column to: :creator_id do
-  #     V1::Source::User.transform(source_record.user_course.user_id)
-  #   end
-  #   column to: :updater_id do
-  #     creator_id
-  #   end
-  #
-  #   column :created_at
-  #   column :updated_at
-  #
-  #   skip_saving_unless_valid
-  # end
+end
+
+class SurveyMrqAnswerOptionTable < BaseTable
+  table_name 'survey_mrq_answers'
+  scope { |ids| within_courses(ids).includes(:user_course) }
+
+  def migrate_batch(batch)
+    #TODO: create mrq answers
+    # batch.each do |old|
+    #   new = ::Course::Survey::AnswerOption.new
+    #
+    #   migrate(old, new) do
+    #     column :question_id do |old|
+    #       store.get(V1::SurveyQuestion.table_name, old.question_id)
+    #     end
+    #     column :response_id do
+    #       store.get(V1::SurveySubmission.table_name, old.survey_submission_id)
+    #     end
+    #     column :creator_id do
+    #       store.get(V1::User.table_name, old.user_course.user_id)
+    #     end
+    #     column :updater_id do
+    #       new.creator_id
+    #     end
+    #
+    #     column :created_at
+    #     column :updated_at
+    #
+    #     skip_saving_unless_valid
+    #
+    #     store.set(model.table_name, old.id, new.id)
+    #   end
+    # end
+  end
 end
 
 # Schema

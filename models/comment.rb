@@ -14,13 +14,13 @@ module V1
         includes(:assessment_answer)
     end
 
-    def transform_topic_id
-      ::Course::Discussion::Topic.find_by(actable_id: CommentTopic.transform(comment_topic_id),
+    def transform_topic_id(store)
+      ::Course::Discussion::Topic.find_by(actable_id: store.get(CommentTopic.table_name, comment_topic_id),
                                           actable_type: 'Course::Assessment::SubmissionQuestion').try(:id)
     end
 
-    def transform_creator_id
-      user_id = User.transform(user_course.user_id)
+    def transform_creator_id(store)
+      user_id = store.get(User.table_name, user_course.user_id)
       user_id || ::User::DELETED_USER_ID
     end
   end
@@ -41,15 +41,15 @@ module V1
         includes(:assessment_answer)
     end
 
-    def transform_file
-      dst_specific_answer_id = AssessmentAnswer.transform(assessment_answer, true)
+    def transform_file(store)
+      dst_specific_answer_id = AssessmentAnswer.get_target_id(store, assessment_answer, specific: true)
       if dst_specific_answer_id
         ::Course::Assessment::Answer::ProgrammingFile.where(answer_id: dst_specific_answer_id).first
       end
     end
 
-    def transform_creator_id
-      user_id = User.transform(user_course.user_id)
+    def transform_creator_id(store)
+      user_id = store.get(User.table_name, user_course.user_id)
       user_id || ::User::DELETED_USER_ID
     end
   end

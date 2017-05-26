@@ -1,21 +1,28 @@
-def transform_survey_sections(course_ids = [])
-  transform_table :survey_sections,
-                  to: ::Course::Survey::Section,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :survey_id, to: :survey_id do |survey_id|
-      V1::Source::Survey.transform(survey_id)
-    end
-    column :title, to: :title do |title|
-      title || ''
-    end
-    column :description
-    column :pos, to: :weight do |pos|
-      pos || -1
-    end
+class SurveySectionTable < BaseTable
+  table_name 'survey_sections'
+  scope { |ids| within_courses(ids) }
 
-    # Skip the title blank validation
-    save validate: false
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Survey::Section.new
+
+      migrate(old, new) do
+        column :survey_id do
+          store.get(V1::Survey.table_name, old.survey_id)
+        end
+        column :title do
+          old.title || ''
+        end
+        column :description
+        column :weight do
+          old.pos || -1
+        end
+
+        # Skip the title blank validation
+        new.save(validate: false)
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

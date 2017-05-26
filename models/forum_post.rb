@@ -25,9 +25,9 @@ module V1
       result.tsort
     end
 
-    def transform_creator_id
+    def transform_creator_id(store)
       # author id references to UserCourse
-      dst_course_user_id = UserCourse.transform(author_id)
+      dst_course_user_id = store.get(V1::UserCourse.table_name,  author_id)
       user_id = ::CourseUser.find_by(id: dst_course_user_id).try(:user_id)
       user_id || ::User::DELETED_USER_ID
     end

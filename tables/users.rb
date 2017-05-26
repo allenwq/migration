@@ -17,7 +17,7 @@ class UserTable < BaseTable
         next
       end
 
-      puts "migrate #{old.id}"
+      Logger.log "migrate #{old.id}"
       new = ::User.new
 
       migrate(old, new) do

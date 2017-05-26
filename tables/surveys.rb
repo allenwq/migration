@@ -1,46 +1,53 @@
-def transform_surveys(course_ids = [])
-  transform_table :surveys,
-                  to: ::Course::Survey,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :course_id, to: :course_id do |old_course_id|
-      V1::Source::Course.transform(old_course_id)
-    end
-    column :title
-    column to: :description do
-      description = ContentParser.parse_mc_tags(source_record.description)
-      description, references = ContentParser.parse_images(source_record, description)
-      self.attachment_references = references if references.any?
-      description
-    end
-    column :exp, to: :base_exp do |exp|
-      exp || 0
-    end
-    column to: :time_bonus_exp do
-      0
-    end
-    column :open_at, to: :start_at
-    column :expire_at, to: :end_at
-    column :publish, to: :published
+class SurveyTable < BaseTable
+  table_name 'surveys'
+  scope { |ids| within_courses(ids) }
 
-    column :anonymous
-    column :allow_modify, to: :allow_response_after_end
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Survey.new
 
-    column :creator_id, to: :creator_id do |creator_id|
-      result = V1::Source::User.transform(creator_id)
-      self.updater_id = result
-      result
-    end
-    column :updated_at, to: :updated_at do |old|
-      lesson_plan_item.updated_at = old
-      old
-    end
-    column :created_at, to: :created_at do |old|
-      lesson_plan_item.created_at = old
-      old
-    end
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :title
+        column :description do
+          description = ContentParser.parse_mc_tags(old.description)
+          description, references = ContentParser.parse_images(old, description)
+          new.attachment_references = references if references.any?
+          description
+        end
+        column :base_exp do
+          old.exp || 0
+        end
+        column :time_bonus_exp do
+          0
+        end
+        column :open_at => :start_at
+        column :expire_at => :end_at
+        column :publish => :published
 
-    skip_saving_unless_valid
+        column :anonymous
+        column :allow_modify => :allow_response_after_end
+
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.creator_id)
+          new.updater_id = result
+          result
+        end
+        column :updated_at do
+          new.lesson_plan_item.updated_at = old.updated_at
+          old.updated_at
+        end
+        column :created_at do
+          new.lesson_plan_item.created_at = old.created_at
+          old.created_at
+        end
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

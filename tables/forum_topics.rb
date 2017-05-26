@@ -1,35 +1,39 @@
-def transform_forum_topics(course_ids = [])
-  transform_table :forum_topics,
-                  to: ::Course::Forum::Topic,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :forum_id do
-      V1::Source::ForumForum.transform(source_record.forum_id)
-    end
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.forum.try(:course_id))
-    end
-    column :title
-    column :locked
-    column :hidden
-    column to: :topic_type do
-      source_record.transform_topic_type
-    end
-    column to: :creator_id do
-      result = source_record.transform_creator_id
-      self.updater_id = result
-      result
-    end
-    column :created_at, to: :created_at do |old|
-      discussion_topic.created_at = old
-      old
-    end
-    column :updated_at, to: :updated_at do |old|
-      discussion_topic.updated_at = old
-      old
-    end
+class ForumTopicTable < BaseTable
+  table_name 'forum_topics'
+  scope { |ids| within_courses(ids) }
 
-    skip_saving_unless_valid
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Forum::Topic.new
+      
+      migrate(old, new) do
+        column :forum_id do
+          store.get(V1::ForumForum.table_name, old.forum_id)
+        end
+        column :course_id do
+          store.get(V1::Course.table_name, old.forum.try(:course_id))
+        end
+        column :title
+        column :locked
+        column :hidden
+        column :topic_type do
+          old.transform_topic_type
+        end
+        column :creator_id do
+          result = old.transform_creator_id(store)
+          new.updater_id = result
+          result
+        end
+        column :created_at
+        column :updated_at
+        new.discussion_topic.created_at = old.created_at
+        new.discussion_topic.updated_at = old.updated_at
+
+        skip_saving_unless_valid
+
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

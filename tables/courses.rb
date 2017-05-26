@@ -3,7 +3,7 @@ class CourseTable < BaseTable
   scope { |ids| where(id: ids) }
 
   def initialize(store, ids, options = {})
-    super(store)
+    super(store, ids, 1)
     @course_ids = Array(ids)
     @fix_id = options[:fix_id].nil? ? true : options[:fix_id]
   end

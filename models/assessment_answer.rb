@@ -10,7 +10,7 @@ module V1
     has_one :assessment_answer_grading, foreign_key: 'answer_id', inverse_of: nil
 
     # Takes in src answer id and return the target id
-    def self.get_target_id(src_id_or_object, specific: false)
+    def self.get_target_id(store, src_id_or_object, specific: false)
       return unless src_id_or_object
 
       if src_id_or_object.is_a?(Integer)

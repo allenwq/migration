@@ -10,7 +10,7 @@ class AssessmentMcqAnswerOptionTable < BaseTable
         column :answer_id do
           store.get(V1::AssessmentMcqAnswer.table_name, old.answer_id)
         end
-        column to: :option_id do
+        column :option_id do
           store.get(V1::AssessmentMcqOption.table_name, old.option_id)
         end
 

@@ -1,46 +1,54 @@
-def transform_forum_posts(course_ids = [])
-  transform_table :forum_posts,
-                  to: ::Course::Discussion::Post,
-                  default_scope: proc { V1::Source::ForumPost.tsort(within_courses(course_ids)) } do
-    primary_key :id
-    column to: :parent_id do
-      dst_id = V1::Source::ForumPost.transform(source_record.parent_id)
-      if source_record.parent_id && !dst_id
-        puts "Cannot find parent for #{source_record.class.name} #{source_record.id}"
-      end
+class ForumPostTable < BaseTable
+  table_name 'forum_posts'
+  scope { |ids| V1::ForumPost.tsort(within_courses(ids)) }
 
-      dst_id
-    end
-    column to: :topic_id do
-      id = V1::Source::ForumTopic.transform(source_record.topic_id)
-      Course::Discussion::Topic.find_by(actable_id: id, actable_type: 'Course::Forum::Topic').try(:id)
-    end
-    column :title
-    column to: :text do
-      text = ContentParser.parse_mc_tags(source_record.text)
-      text, references = ContentParser.parse_images(source_record, text)
-      self.attachment_references = references if references.any?
-      text
-    end
-    column to: :creator_id do
-      result = source_record.transform_creator_id
-      self.updater_id = result
-      result
-    end
-    column :created_at
-    column :updated_at
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Discussion::Post.new
+      migrate(old, new) do
+        column :parent_id do
+          dst_id = store.get(V1::ForumPost.table_name, old.parent_id)
+          if old.parent_id && !dst_id
+            Logger.log "Cannot find parent for #{old.class.name} #{old.id}"
+          end
 
-    skip_saving_unless_valid do
-      # Drop those records without creator
-      if creator_id.present?
-        valid?
-      else
-        errors.add(:creator, :blank)
-        false
+          dst_id
+        end
+        column :topic_id do
+          id = store.get(V1::ForumTopic.table_name, old.topic_id)
+          Course::Discussion::Topic.find_by(actable_id: id, actable_type: 'Course::Forum::Topic').try(:id)
+        end
+        column :title
+        column :text do
+          text = ContentParser.parse_mc_tags(old.text)
+          text, references = ContentParser.parse_images(old, text)
+          new.attachment_references = references if references.any?
+          text
+        end
+        column :creator_id do
+          result = old.transform_creator_id(store)
+          new.updater_id = result
+          result
+        end
+        column :created_at
+        column :updated_at
+
+        skip_saving_unless_valid do
+          # Drop those records without creator
+          if creator_id.present?
+            valid?
+          else
+            errors.add(:creator, :blank)
+            false
+          end
+        end
+
+        store.set(model.table_name, old.id, new.id)
       end
     end
   end
 end
+
 
 # Schema
 #

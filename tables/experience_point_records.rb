@@ -1,32 +1,40 @@
-def transform_manual_exp(course_ids = [])
-  transform_table :exp_transactions,
-                  to: ::Course::ExperiencePointsRecord,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column :exp, to: :points_awarded
-    column to: :reason do
-      source_record.reason || '( No Reason )'
-    end
-    column to: :course_user_id do
-      V1::Source::UserCourse.transform(source_record.user_course_id)
-    end
-    column to: :creator_id do
-      result = V1::Source::Course.transform(source_record.giver_id)
-      self.updater_id = result
-      result
-    end
-    column to: :updater_id do
-      V1::Source::Course.transform(source_record.giver_id)
-    end
+class ExpRecordTable < BaseTable
+  table_name 'exp_transactions'
+  scope { |ids| within_courses(ids) }
 
-    column :giver_id, to: :awarder_id
-    column to: :awarded_at do
-      source_record.created_at
-    end
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::ExperiencePointsRecord.new
+      
+      migrate(old, new) do
+        column :exp => :points_awarded
+        column :reason do
+          old.reason || '( No Reason )'
+        end
+        column :course_user_id do
+          store.get(V1::UserCourse.table_name, old.user_course_id)
+        end
+        column :creator_id do
+          result = store.get(V1::Course.table_name, old.giver_id)
+          new.updater_id = result
+          result
+        end
+        column :updater_id do
+          store.get(V1::Course.table_name, old.giver_id)
+        end
 
-    column :created_at
-    column :updated_at
-    skip_saving_unless_valid
+        column :giver_id => :awarder_id
+        column :awarded_at do
+          old.created_at
+        end
+
+        column :created_at
+        column :updated_at
+        skip_saving_unless_valid
+
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

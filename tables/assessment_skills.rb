@@ -1,70 +1,92 @@
-def transform_assessment_skills(course_ids = [])
-  transform_table :tag_groups,
-                  to: ::Course::Assessment::SkillBranch,
-                  default_scope: proc { within_courses(course_ids) } do
-    before_transform do |old|
+class AssessmentSkillGroupTable < BaseTable
+  table_name 'tag_groups'
+  scope { |ids| within_courses(ids) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::SkillBranch.new
+
       # Skip migrate the magic uncategorized category
       if old.name == 'Uncategorized'
-        old.class.memoize_transform(old.id, 'NULL')
-        false
-      else
-        true
+        store.set(model.table_name, old.id, 'NULL')
+        next
+      end
+
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :name => :title
+        column :description
+        column :updated_at
+        column :created_at
+
+        skip_saving_unless_valid
+
+        store.set(model.table_name, old.id, new.id)
       end
     end
-    primary_key :id
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
-    end
-    column :name, to: :title
-    column :description
-    column :updated_at
-    column :created_at
-
-    skip_saving_unless_valid
   end
+end
 
-  transform_table :tags,
-                  to: ::Course::Assessment::Skill,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
-    end
-    column to: :skill_branch_id do
-      id = V1::Source::TagGroup.transform(source_record.tag_group_id)
-      id == 'NULL' ? nil : id
-    end
-    column :name, to: :title
-    column :description
-    column :updated_at
-    column :created_at
+class AssessmentSkillTable < BaseTable
+  table_name 'tags'
+  scope { |ids| within_courses(ids) }
 
-    skip_saving_unless_valid
-  end
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Assessment::Skill.new
 
-  transform_table :taggable_tags, to: :course_assessment_questions_skills,
-                  default_scope: proc { within_courses(course_ids).includes(question: :question_assessments) } do
-    before_transform do |old|
-      !old.question_deleted?
-    end
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :skill_branch_id do
+          id = store.get(V1::TagGroup.table_name, old.tag_group_id)
+          id == 'NULL' ? nil : id
+        end
+        column :name => :title
+        column :description
+        column :updated_at
+        column :created_at
 
-    primary_key :id
-    column to: :question_id do
-      V1::Source::AssessmentQuestion.transform(source_record.taggable_id)
-    end
-    column to: :skill_id do
-      V1::Source::Tag.transform(source_record.tag_id)
-    end
-
-    save validate: false, if: proc {
-      if question_id && skill_id
-        true
-      else
-        puts "Invalid #{source_record.class} #{source_record.primary_key_value}:"\
-        " question_id: #{question_id}, skill_id: #{skill_id}"
-        false
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
       end
-    }
+    end
+  end
+end
+
+class AssessmentQuestionSkillTable < BaseTable
+  table_name 'taggable_tags'
+  scope { |ids| within_courses(ids) }
+
+  class QuestionSkill < ActiveRecord::Base
+    self.table_name = 'course_assessment_questions_skills'
+  end
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      next if old.question_deleted? || old.assessment_deleted?
+
+      new = QuestionSkill.new
+
+      migrate(old, new) do
+        column :question_id do
+          V1::AssessmentQuestion.get_target_specific_id(store, old.taggable_id)
+        end
+        column :skill_id do
+          store.get(V1::Tag.table_name, old.tag_id)
+        end
+
+        if new.question_id && new.skill_id
+          new.save(validate: false)
+          store.set(model.table_name, old.id, new.id)
+        else
+          Logger.log "Invalid #{old.class} #{old.primary_key_value}: question_id: #{new.question_id}, skill_id: #{new.skill_id}"
+        end
+      end
+    end
   end
 end
 

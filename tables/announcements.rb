@@ -1,35 +1,43 @@
-def transform_announcements(course_ids = [])
-  transform_table :announcements,
-                  to: ::Course::Announcement,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :course_id do
-      V1::Source::Course.transform(source_record.course_id)
-    end
-    column :title, to: :title do |title|
-      # some of the announcements don't have titles,
-      # example: http://coursemology.org/courses/193/announcements
-      title.present? ? title : 'Untitled'
-    end
-    column :description, to: :content do |description|
-      description = ContentParser.parse_mc_tags(description)
-      description, references = ContentParser.parse_images(source_record, description)
-      self.attachment_references = references if references.any?
-      description
-    end
-    column :publish_at, to: :start_at
-    column :expiry_at, to: :end_at do |expiry_at|
-      expiry_at || Time.now
-    end
-    column to: :creator_id do
-      result = V1::Source::User.transform(source_record.creator_id)
-      self.updater_id = result
-      result
-    end
-    column :updated_at
-    column :created_at
+class AnnouncementTable < BaseTable
+  table_name 'announcements'
+  scope { |ids| within_courses(ids) }
 
-    skip_saving_unless_valid
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Announcement.new
+      
+      migrate(old, new) do
+        column :course_id do
+          store.get(V1::Course.table_name, old.course_id)
+        end
+        column :title do
+          # some of the announcements don't have titles,
+          # example: http://coursemology.org/courses/193/announcements
+          title = old.title
+          title.present? ? title : 'Untitled'
+        end
+        column :content do
+          description = ContentParser.parse_mc_tags(old.description)
+          description, references = ContentParser.parse_images(old, description)
+          new.attachment_references = references if references.any?
+          description
+        end
+        column :publish_at => :start_at
+        column :end_at do
+          old.expiry_at || Time.now
+        end
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.creator_id)
+          new.updater_id = result
+          result
+        end
+        column :updated_at
+        column :created_at
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 end
 

@@ -1,7 +1,7 @@
 class BaseTable
   attr_reader :store, :course_ids, :concurrency
 
-  def initialize(store, course_ids = [], concurrency)
+  def initialize(store, course_ids = [], concurrency = 1)
     @store = store
     @course_ids = Array(course_ids)
     @concurrency = concurrency
@@ -81,14 +81,6 @@ class BaseTable
     self.class.instance_variable_get(:@scope)
   end
 
-  # Calculate the time of the action
-  def timer
-    start = Time.now
-    yield if block_given?
-
-    Time.now - start
-  end
-
   def process_batch(batch)
     if concurrency <= 1
       migrate_batch(batch)
@@ -96,6 +88,14 @@ class BaseTable
       # Use worker to split jobs if concurrency is great than 1
       @worker.schedule { migrate_batch(batch) }
     end
+  end
+
+  # Calculate the time of the action
+  def timer
+    start = Time.now
+    yield if block_given?
+
+    Time.now - start
   end
 end
 

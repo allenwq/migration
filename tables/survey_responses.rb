@@ -1,71 +1,73 @@
-def transform_survey_responses(course_ids = [])
-  transform_table :survey_submissions,
-                  to: ::Course::Survey::Response,
-                  default_scope: proc { within_courses(course_ids).includes(:user_course) } do
-    before_transform do |old|
+class SurveyResponseTable < BaseTable
+  table_name 'survey_submissions'
+  scope { |ids| within_courses(ids).includes(:user_course) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
       # Lots of surveys in v1 has an deleted course user
-      old.user_course.present?
-    end
-
-    primary_key :id
-    column :survey_id, to: :survey_id do |survey_id|
-      V1::Source::Survey.transform(survey_id)
-    end
-    column :submitted_at, to: :submitted_at do |old|
-      source_record.status == 'submitted' ? old : nil
-    end
-    column to: :creator_id do
-      cu_id = V1::Source::UserCourse.transform(source_record.user_course_id)
-      user = ::User.joins(:course_users).where('course_users.id = ?', cu_id).first
-      user.id if user
-    end
-    column to: :updater_id do
-      creator_id
-    end
-
-    column :created_at
-    column :updated_at
-
-    before_save do |old, new|
-      # Migrate exp record
-      exp = new.acting_as
-      exp.creator_id = new.creator_id
-      exp.updater_id = new.updater_id
-      exp.created_at = old.created_at
-      exp.updated_at = old.updated_at
-      exp.course_user_id = V1::Source::UserCourse.transform(old.user_course_id)
-
-      if old.status == 'submitted'
-        exp.awarder_id = new.creator_id
-
-        if old.exp_transaction
-          exp.points_awarded = old.exp_transaction.exp
-          exp.awarded_at = old.exp_transaction.created_at
-        else
-          exp.points_awarded = 0
-          exp.awarded_at = new.created_at
+      next if !old.user_course.present?
+      
+      new = ::Course::Survey::Response.new
+      
+      migrate(old, new) do
+        column :survey_id do
+          store.get(V1::Survey.table_name, old.survey_id)
         end
+        column :submitted_at do
+          old.status == 'submitted' ? old.submitted_at : nil
+        end
+        column :creator_id do
+          cu_id = store.get(V1::UserCourse.table_name, old.user_course_id)
+          user = ::User.joins(:course_users).where('course_users.id = ?', cu_id).first
+          user.id if user
+        end
+        column :updater_id do
+          new.creator_id
+        end
+
+        column :created_at
+        column :updated_at
+
+        # Migrate exp record
+        exp = new.acting_as
+        exp.creator_id = new.creator_id
+        exp.updater_id = new.updater_id
+        exp.created_at = old.created_at
+        exp.updated_at = old.updated_at
+        exp.course_user_id = store.get(V1::UserCourse.table_name, old.user_course_id)
+
+        if old.status == 'submitted'
+          exp.awarder_id = new.creator_id
+
+          if old.exp_transaction
+            exp.points_awarded = old.exp_transaction.exp
+            exp.awarded_at = old.exp_transaction.created_at
+          else
+            exp.points_awarded = 0
+            exp.awarded_at = new.created_at
+          end
+        end
+
+        # Migrate MRQ answers, V1 MRQ answers are equal to answer_options in v2, must migrate here to make sure it's thread safe
+        # TODO: wait for survey to change the schema
+        # old.mrq_answers.group_by(&:question_id).each do |pair|
+        #   question_id = store.get(V1::SurveyQuestion.table_name, pair[0])
+        #   old_answers = pair[1]
+        #   selected_option_ids = old_answers.map do |a|
+        #     V1::SurveyQuestionOption.transform(a.option_id)
+        #   end
+        #   new_question = ::Course::Survey::Question.find(question_id)
+        #   answer = new.answers.build(question_id: question_id)
+        #   new_question.option_ids.each do |id|
+        #     answer.options.build(question_option_id: id, selected: selected_option_ids.include?(id))
+        #   end
+        # end
+
+        skip_saving_unless_valid
+
+        store.set(model.table_name, old.id, new.id)
       end
-
-      # Migrate MRQ answers, V1 MRQ answers are equal to answer_options in v2, must migrate here to make sure it's thread safe
-      # TODO: wait for survey to change the schema
-      # old.mrq_answers.group_by(&:question_id).each do |pair|
-      #   question_id = V1::Source::SurveyQuestion.transform(pair[0])
-      #   old_answers = pair[1]
-      #   selected_option_ids = old_answers.map do |a|
-      #     V1::Source::SurveyQuestionOption.transform(a.option_id)
-      #   end
-      #   new_question = ::Course::Survey::Question.find(question_id)
-      #   answer = new.answers.build(question_id: question_id)
-      #   new_question.option_ids.each do |id|
-      #     answer.options.build(question_option_id: id, selected: selected_option_ids.include?(id))
-      #   end
-      # end
-
-      true
     end
-
-    skip_saving_unless_valid
   end
 end
 

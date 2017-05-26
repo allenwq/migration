@@ -1,27 +1,31 @@
-def transform_forum_post_votes(course_ids = [])
-  transform_table :votes,
-                  to: ::Course::Discussion::Post::Vote,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :post_id do
-      V1::Source::ForumPost.transform(source_record.votable_id)
-    end
-    column :vote_flag
-    column to: :creator_id do
-      result = V1::Source::User.transform(source_record.voter_id)
-      self.updater_id = result
-      result
-    end
-    column :created_at
-    column :updated_at
+class ForumPostVoteTable < BaseTable
+  table_name 'votes'
+  scope { |ids| within_courses(ids) }
 
-    skip_saving_unless_valid do
-      # Drop those records without creator
-      if creator_id.present?
-        valid?
-      else
-        errors.add(:creator, :blank)
-        false
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Discussion::Post::Vote.new
+
+      migrate(old, new) do
+        column :post_id do
+          store.get(V1::ForumPost.table_name, old.votable_id)
+        end
+        column :vote_flag
+        column :creator_id do
+          result = store.get(V1::User.table_name, old.voter_id)
+          new.updater_id = result
+          result
+        end
+        column :created_at
+        column :updated_at
+
+        # Drop those records without creator
+        if new.creator_id.present?
+          skip_saving_unless_valid
+          store.set(model.table_name, old.id, new.id)
+        else
+          Logger.log("#{old.class.name} #{old.id}: creator is nil")
+        end
       end
     end
   end

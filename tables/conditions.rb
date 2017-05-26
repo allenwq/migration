@@ -1,65 +1,80 @@
-def transform_conditions(course_ids = [])
-  transform_table :requirements,
-                  to: ::Course::Condition,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :conditional do
-      dst_id = V1::Source::Achievement.transform(source_record.obj_id)
-      ::Course::Achievement.find_by(id: dst_id)
-    end
-    column to: :course_id do
-      conditional.course_id if conditional
-    end
-    column to: :actable do
-      actable = source_record.transform_actable
-      actable.condition = self if actable
-      actable
-    end
-    column :updated_at
-    column :created_at
+class ConditionTable < BaseTable
+  table_name 'requirements'
+  scope { |ids| within_courses(ids) }
 
-    before_save do |old, new|
-      if new.actable.nil?
-        puts "Invalid #{old.class.name} #{old.id}"
-        false
-      else
-        true
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Condition.new
+      migrate(old, new) do
+        column :conditional do
+          dst_id = store.get(V1::Achievement.table_name, old.obj_id)
+          ::Course::Achievement.find_by(id: dst_id)
+        end
+        column :course_id do
+          new.conditional.course_id if new.conditional
+        end
+        column :actable do
+          actable = old.transform_actable(store)
+          actable.condition = new if actable
+          actable
+        end
+        column :updated_at
+        column :created_at
+
+        if new.actable.nil?
+          Logger.log "Invalid #{old.class.name} #{old.id}"
+        else
+          skip_saving_unless_valid
+          store.set(model.table_name, old.id, new.id)
+        end
       end
     end
+  end
+end
 
-    skip_saving_unless_valid
+class AssessmentConditionTable < BaseTable
+  table_name 'assessment_dependency'
+  scope { |ids| within_courses(ids).order(:id) }
+
+  def migrate_batch(batch)
+    batch.each do |old|
+      new = ::Course::Condition::Assessment.new
+      
+      migrate(old, new) do
+        column :conditional_type do
+          ::Course::Assessment.name
+        end
+        column :conditional_id do
+          store.get(V1::Assessment.table_name, old.id)
+        end
+        column :course_id do
+          new.conditional.course_id
+        end
+        column :assessment_id do
+          # The id points to the assessment id.
+          store.get(V1::Assessment.table_name, old.dependent_id)
+        end
+        column :minimum_grade_percentage do
+          # Only require to finish the dependent one.
+          nil
+        end
+
+        column :created_at do
+          Time.zone.now
+        end
+        column :updated_at do
+          Time.zone.now
+        end
+
+        skip_saving_unless_valid
+        store.set(model.table_name, old.id, new.id)
+      end
+    end
   end
 
-  transform_table :assessment_dependency,
-                  to: ::Course::Condition::Assessment,
-                  default_scope: proc { within_courses(course_ids) } do
-    primary_key :id
-    column to: :conditional_type do
-      ::Course::Assessment.name
-    end
-    column to: :conditional_id do
-      V1::Source::Assessment.transform(source_record.id)
-    end
-    column to: :course_id do
-      conditional.course_id
-    end
-    column to: :assessment_id do
-      # The id points to the assessment id.
-      V1::Source::Assessment.transform(source_record.dependent_id)
-    end
-    column to: :minimum_grade_percentage do
-      # Only require to finish the dependent one.
-      nil
-    end
-
-    column to: :created_at do
-      Time.zone.now
-    end
-    column to: :updated_at do
-      Time.zone.now
-    end
-
-    skip_saving_unless_valid
+  def process_in_batches?
+    # There's no primary key in `assessment_dependency` and `find_in_batches` cannot be used
+    false
   end
 end
 

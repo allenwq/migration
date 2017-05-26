@@ -33,9 +33,9 @@ module V1
       end
     end
 
-    def transform_creator_id
+    def transform_creator_id(store)
       if file_upload
-        User.transform(file_upload.creator_id) || ::User::DELETED_USER_ID
+        store.get(User.table_name, file_upload.creator_id) || ::User::DELETED_USER_ID
       end
     end
   end
