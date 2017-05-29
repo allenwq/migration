@@ -10,7 +10,9 @@ class SurveyTable < BaseTable
         column :course_id do
           store.get(V1::Course.table_name, old.course_id)
         end
-        column :title
+        column :title do
+          old.title.present? ? old.title : 'Untitled'
+        end
         column :description do
           description = ContentParser.parse_mc_tags(old.description)
           description, references = ContentParser.parse_images(old, description)
