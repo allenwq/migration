@@ -34,6 +34,8 @@ class CachedWriteStore
       namespace, actual_key = YAML.load(key)
       redis_store.set(namespace, actual_key, value)
     end
+
+    @store = {}
   end
 
   private
