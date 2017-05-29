@@ -29,7 +29,7 @@ module V1
 
       if is_done
         state = 'completed'
-      elsif submission = target_submission(store) && submission.attempting?
+      elsif (submission = target_submission(store)) && submission.attempting?
         state = 'in_progress'
       end
 
