@@ -10,7 +10,7 @@ module V1
 
     def exp_awarded
       if status == 'graded' && gradings.first
-        gradings.first.exp_transaction.exp
+        gradings.first&.exp_transaction&.exp
       else
         nil
       end
@@ -72,7 +72,7 @@ module V1
 
     def validate_unique_submission
       existing = ::Course::Assessment::Submission.
-        find_by(assessment_id: assessment_id || assessment.id, creator_id: creator_id || creator.id)
+        find_by(assessment_id: assessment_id || assessment&.id, creator_id: creator_id || creator&.id)
 
       return unless existing
       errors.clear
