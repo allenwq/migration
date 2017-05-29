@@ -10,7 +10,7 @@
 end
 
 # Don't create TODOs in callbacks
-::Course::LessonPlan::ItemTodoConcern.instance_eval do
+::Course::LessonPlan::ItemTodoConcern.module_eval do
   raise 'Method removed' unless public_instance_methods(false).include?(:create_todos)
   def create_todos
   end
