@@ -134,6 +134,11 @@ module V1
   end
 
   ::Course::Assessment::Answer.class_eval do
+    # Skipping validating of the grade, there are answers which have grades higher than max grade of the question
+    # Should preserve the data.
+    def validate_grade
+    end
+
     # Make sure that the validation still works if there is no question or submission.
     def validate_consistent_assessment
       return unless question && submission
