@@ -11,7 +11,9 @@ class AssessmentTable < BaseTable
           new.folder.course_id = id
           id
         end
-        column :title
+        column :title do
+          old.title.present? ? old.title : 'Untitled'
+        end
         column :description do
           description = ContentParser.parse_mc_tags(old.description)
           description, references = ContentParser.parse_images(old, description)
@@ -71,12 +73,15 @@ class AssessmentTable < BaseTable
           created_at
         end
 
+        names = []
         old.file_uploads.visible.each do |file|
           attachment = file.transform_attachment_reference(store)
           if attachment
-            new.folder.materials.build(attachment_reference: attachment, name: attachment.name,
-                                       created_at: attachment.created_at, updated_at: attachment.updated_at,
-                                       creator_id: attachment.creator_id, updater_id: attachment.updater_id)
+            name = get_valid_name(attachment.name, names)
+            m = new.folder.materials.build(attachment_reference: attachment, name: name,
+                                           created_at: attachment.created_at, updated_at: attachment.updated_at,
+                                           creator_id: attachment.creator_id, updater_id: attachment.updater_id)
+            names << m.name
           end
         end
 
@@ -100,6 +105,17 @@ class AssessmentTable < BaseTable
     elsif old.as_assessment_type == 'Assessment::Mission'
       new_course.assessment_categories.unscope(:order).last.tabs.first.id
     end
+  end
+
+  def get_valid_name(base_name, existing_names)
+    names_taken = existing_names.map(&:downcase)
+    name_generator = FileName.new(base_name, path: :relative, add: :always, position: :prefix,
+                                  format: '(%d)', delimiter: ' ')
+
+    new_name = base_name
+    new_name = name_generator.create while names_taken.include?(new_name.downcase)
+
+    new_name
   end
 end
 
