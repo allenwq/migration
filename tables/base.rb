@@ -41,8 +41,10 @@ class BaseTable
       Logger.log("Migrate #{table}...")
 
       if process_in_batches?
+        stabilize_source_connection if parallel?
         source_records.find_in_batches do |batch|
           process_batch(batch)
+          stabilize_source_connection if parallel?
         end
       else
         process_batch(source_records)
@@ -79,12 +81,24 @@ class BaseTable
 
   def ensure_db_connection
     conn = ActiveRecord::Base.connection
+    conn_v1 = model.connection
     begin
       try ||= 3
       conn.reconnect!
+      conn_v1.reconnect!
     rescue
       try -= 1
       # There is a issue where connection closed unexpectedly, need retry
+      retry if try > 0
+    end
+  end
+
+  def stabilize_source_connection
+    begin
+      try ||= 3
+      source_records.first
+    rescue
+      try -= 1
       retry if try > 0
     end
   end
@@ -96,11 +110,13 @@ class BaseTable
   end
 
   def process_batch(batch)
-    if concurrency <= 1
+    if !parallel?
       migrate_batch(batch)
     else
       # Use worker to split jobs if concurrency is great than 1
-      @worker.schedule { migrate_batch(batch) }
+      @worker.schedule do
+        migrate_batch(batch)
+      end
     end
   end
 
@@ -110,6 +126,10 @@ class BaseTable
     yield if block_given?
 
     Time.now - start
+  end
+
+  def parallel?
+    concurrency > 1
   end
 end
 
