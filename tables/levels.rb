@@ -25,6 +25,15 @@ class LevelTable < BaseTable
         column :updated_at
         column :created_at
 
+        if new.course
+          dup = new.course.levels.find_by(experience_points_threshold: old.exp_threshold)
+          if dup
+            # This is to handle duplicate levels in the source course
+            store.set(model.table_name, old.id, dup.id)
+            next
+          end
+        end
+
         skip_saving_unless_valid
         store.set(model.table_name, old.id, new.id)
       end

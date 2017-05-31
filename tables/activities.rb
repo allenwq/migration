@@ -12,6 +12,12 @@ class ActivityTable < BaseTable
       activity.notifier_type, activity.event = old.target_notifier_and_event
       activity.created_at = old.created_at
       activity.updated_at = old.updated_at
+      if activity.valid?
+        activity.save!
+      else
+        Logger.log "Invalid #{old.class} #{old.primary_key_value}: #{activity.errors.full_messages.to_sentence}"
+        next
+      end
 
       migrate(old, new) do
         column :activity do
