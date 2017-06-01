@@ -5,8 +5,9 @@ class UserTable < BaseTable
   def migrate_batch(batch)
     batch.each do |old|
       new_id = store.get(V1::User.table_name, old.id)
-      if new_id
+      if new_id.present?
         fix_timestamps(old, new_id)
+        fix_permissions(old, new_id)
         next # Don't migrate if user is memoized.
       elsif v2_email = User::Email.find_by(email: old.email)
         # If there's already an email, just memoize and return
@@ -26,8 +27,6 @@ class UserTable < BaseTable
         else
           new.skip_confirmation_notification!
         end
-        new.primary_email_record.updated_at = old.created_at
-        new.primary_email_record.created_at = old.created_at
 
         photo_file = old.transform_profile_photo
         if photo_file
@@ -68,6 +67,8 @@ class UserTable < BaseTable
 
         new.save!(validate: false)
         store.set(model.table_name, old.id, new.id)
+
+        fix_permissions(old, new.id)
       end
     end
   end
@@ -80,6 +81,20 @@ class UserTable < BaseTable
       new.update_column(:updated_at, old.updated_at)
     end
     new.update_column(:created_at, old.created_at)
+  end
+
+  def fix_permissions(old, new_id)
+    # If the old user is a lecturer on v1, it should be a lecturer on v2 default instance
+    return unless old.system_role_id == 3
+
+    ius = ::InstanceUser.unscoped.where(id: new_id).to_a
+    return if ius.any? { |iu| iu.role == 'instructor' }
+
+    if ius.empty?
+      ::InstanceUser.create(user_id: new_id, role: :instructor)
+    else
+      ius.first.update_column(:role, 1)
+    end
   end
 end
 
