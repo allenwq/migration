@@ -10,5 +10,4 @@ $url_mapper = UrlHashMapper.new
 
 unless defined? Rails::Console
   UserMigrator.new.start
-  CourseMigrator.new(362, concurrency: 4, fix_id: false).start
 end
