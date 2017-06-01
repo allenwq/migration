@@ -75,7 +75,12 @@ class UserTable < BaseTable
 
   def fix_timestamps(old, new_id)
     # Map v1 user timestamps to v2
-    new = ::User.find(new_id)
+    new = ::User.find_by(id: new_id)
+
+    unless new.present?
+      Logger.log "Cannot find user #{new_id}, old: #{old.id}"
+      return
+    end
 
     if (new.updated_at - new.created_at).abs < 1.minute
       new.update_column(:updated_at, old.updated_at)
@@ -84,6 +89,7 @@ class UserTable < BaseTable
   end
 
   def fix_permissions(old, new_id)
+    return unless ::User.find_by(id: new_id).present?
     # If the old user is a lecturer on v1, it should be a lecturer on v2 default instance
     return unless old.system_role_id == 3
 
