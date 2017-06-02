@@ -23,4 +23,10 @@ module V1
     def restart_todo
     end
   end
+
+  ::Course::Survey::Response.class_eval do
+    def attempting?
+      !submitted?
+    end
+  end
 end
