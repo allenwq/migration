@@ -87,6 +87,7 @@ class CourseMigrator
         AssessmentMcqQuestionTable,
         AssessmentMcqOptionTable,
         AssessmentTrqQuestionTable,
+        AssessmentScribingQuestionTable,
         AssessmentProgrammingQuestionTable,
 
         AssessmentSubmissionTable,
@@ -115,6 +116,11 @@ class CourseMigrator
 
         LessonPlanTodoTable,
         ActivityTable,
+
+        GroupTable,
+        GroupUserTable,
+
+        CourseUserInvitationTable,
 
       ].map { |t| t.new(store, course_id, concurrency) }
 
