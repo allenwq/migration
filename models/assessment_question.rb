@@ -19,6 +19,8 @@ module V1
         type = ::Course::Assessment::Question::TextResponse.name
       when AssessmentCodingQuestion.name.demodulize
         type = ::Course::Assessment::Question::Programming.name
+      when AssessmentScribingQuestion.name.demodulize
+        type = ::Course::Assessment::Question::Scribing.name
       end
 
       ::Course::Assessment::Question.find_by(actable_type: type, actable_id:
