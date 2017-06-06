@@ -116,6 +116,7 @@ class CourseMigrator
 
         LessonPlanTodoTable,
         ActivityTable,
+        EnrolRequestTable,
 
         GroupTable,
         GroupUserTable,
