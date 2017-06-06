@@ -2,10 +2,11 @@
 Migration script from Coursemology v1 to v2.
 
 ## Usage
-Add this line to the application's Gemfile:
+Add these line to the application's Gemfile:
 
 ```ruby
 gem 'mysql2'
+gem 'redis'
 ```
 
 Add a new connection to the old database in `database.yml`.
@@ -16,10 +17,9 @@ v1:
   host: coursemology.org
 ```
 
-Clone the files from this repo to Coursemology V2's app folder.
+Clone the files from this repo to Coursemology V2's `lib/tasks` directory.
 
 And then:
 ```sh
 $ rake migration:start
 ```
-
