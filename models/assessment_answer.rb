@@ -29,6 +29,8 @@ module V1
         type = ::Course::Assessment::Answer::MultipleResponse.name
       when AssessmentGeneralAnswer.name.demodulize
         type = ::Course::Assessment::Answer::TextResponse.name
+      when AssessmentScribingAnswer.name.demodulize
+        type = ::Course::Assessment::Answer::Scribing.name
       when AssessmentCodingAnswer.name.demodulize
         type = ::Course::Assessment::Answer::Programming.name
       end
