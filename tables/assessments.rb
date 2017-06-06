@@ -77,7 +77,7 @@ class AssessmentTable < BaseTable
         old.file_uploads.visible.each do |file|
           attachment = file.transform_attachment_reference(store)
           if attachment
-            name = get_valid_name(attachment.name, names)
+            name = get_valid_name(Pathname.normalize_filename(attachment.name), names)
             m = new.folder.materials.build(attachment_reference: attachment, name: name,
                                            created_at: attachment.created_at, updated_at: attachment.updated_at,
                                            creator_id: attachment.creator_id, updater_id: attachment.updater_id)
@@ -109,9 +109,10 @@ class AssessmentTable < BaseTable
 
   def get_valid_name(base_name, existing_names)
     names_taken = existing_names.map(&:downcase)
-    name_generator = FileName.new(base_name, path: :relative, add: :always, position: :prefix,
-                                  format: '(%d)', delimiter: ' ')
-
+    name_generator = FileName.new(
+      base_name, path: :relative, position: :prefix, add: :always, format: '(%d)', delimiter: ' ',
+      filter: { after: lambda { |basename| basename } } # Needed to remove `./` in the front
+    )
     new_name = base_name
     new_name = name_generator.create while names_taken.include?(new_name.downcase)
 
