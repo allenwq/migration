@@ -94,6 +94,8 @@ class CourseMigrator
         AssessmentMcqAnswerTable,
         AssessmentMcqAnswerOptionTable,
         AssessmentTrqAnswerTable,
+        AssessmentScribingAnswerTable,
+        AssessmentAnswerScribbleTable,
         AssessmentProgrammingAnswerTable,
 
         AssessmentSkillGroupTable,
