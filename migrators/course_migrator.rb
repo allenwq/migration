@@ -124,7 +124,8 @@ class CourseMigrator
 
         GroupTable,
         GroupUserTable,
-
+        GuildTable,
+        GuildUserTable,
         CourseUserInvitationTable,
 
       ].map { |t| t.new(store, course_id, concurrency) }
