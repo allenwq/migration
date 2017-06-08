@@ -87,6 +87,8 @@ class CourseMigrator
         AssessmentMcqQuestionTable,
         AssessmentMcqOptionTable,
         AssessmentTrqQuestionTable,
+        AssessmentTrqKeywordSolutionTable,
+        AssessmentTrqExactMatchSolutionTable,
         AssessmentScribingQuestionTable,
         AssessmentProgrammingQuestionTable,
 
@@ -94,6 +96,8 @@ class CourseMigrator
         AssessmentMcqAnswerTable,
         AssessmentMcqAnswerOptionTable,
         AssessmentTrqAnswerTable,
+        AssessmentScribingAnswerTable,
+        AssessmentAnswerScribbleTable,
         AssessmentProgrammingAnswerTable,
 
         AssessmentSkillGroupTable,
