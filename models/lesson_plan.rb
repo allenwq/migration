@@ -25,4 +25,12 @@ module V1
       end
     end
   end
+
+  def_model 'lesson_plan_resources' do
+    belongs_to :lesson_plan_entry, inverse_of: nil
+
+    scope :within_courses, ->(course_ids) do
+      joins(:lesson_plan_entry).where(lesson_plan_entry: { course_id: Array(course_ids) })
+    end
+  end
 end
