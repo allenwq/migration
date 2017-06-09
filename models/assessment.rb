@@ -11,6 +11,11 @@ module V1
     def specific
       as_assessment
     end
+
+    def file_upload_enabled?
+      as_assessment_type == 'Assessment::Mission' &&
+        specific && (specific.file_submission || specific.file_submission_only)
+    end
   end
 
   ::Course::Assessment.class_eval do
