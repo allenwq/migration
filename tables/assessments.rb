@@ -85,6 +85,10 @@ class AssessmentTable < BaseTable
           end
         end
 
+        if old.file_upload_enabled?
+          new.questions << build_file_upload_question(new).acting_as
+        end
+
         skip_saving_unless_valid
 
         store.set(model.table_name, old.id, new.id)
@@ -117,6 +121,18 @@ class AssessmentTable < BaseTable
     new_name = name_generator.create while names_taken.include?(new_name.downcase)
 
     new_name
+  end
+
+  def build_file_upload_question(assessment)
+    question = Course::Assessment::Question::TextResponse.new(hide_text: true, allow_attachment: true)
+    question.title = 'File Upload'
+    question.maximum_grade = 0
+    question.weight = 100 # using a higher weight to make it last
+    question.created_at = assessment.created_at
+    question.updated_at = assessment.created_at
+    question.creator_id = assessment.creator_id
+    question.updater_id = assessment.creator_id
+    question
   end
 end
 

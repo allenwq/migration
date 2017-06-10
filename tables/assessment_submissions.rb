@@ -69,10 +69,43 @@ class AssessmentSubmissionTable < BaseTable
         new.acting_as.updated_at = old.updated_at
         new.acting_as.created_at = old.created_at
 
+        if old.assessment.file_upload_enabled?
+          new.answers << build_file_upload_answer(store, old, new).acting_as
+        end
+
         skip_saving_unless_valid
         store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end
+  end
+
+  def build_file_upload_answer(store, old_submission, new_submission)
+    answer = ::Course::Assessment::Answer::TextResponse.new
+    answer.question = new_submission.assessment.questions.map(&:specific).detect { |q| q.file_upload_question? }.acting_as
+    answer.created_at = new_submission.created_at
+    answer.updated_at = new_submission.updated_at
+    answer.workflow_state = case old_submission.status
+                            when 'graded'
+                              :graded
+                            when 'submitted'
+                              :submitted
+                            else
+                              :attempting
+                            end
+    if !answer.attempting?
+      answer.submitted_at = old_submission.submitted_at
+    end
+    if answer.graded?
+      answer.grade = 0
+      answer.graded_at = new_submission.published_at
+      answer.grader_id = new_submission.publisher_id
+    end
+    old_submission.file_uploads.each do |file|
+      attachment = file.transform_attachment_reference(store)
+      answer.attachment_references << attachment if attachment
+    end
+
+    answer
   end
 end
 

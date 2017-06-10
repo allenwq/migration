@@ -3,6 +3,7 @@ module V1
     belongs_to :assessment, inverse_of: nil
     belongs_to :std_course, class_name: 'UserCourse', inverse_of: nil
     has_many :gradings, class_name: 'AssessmentGrading', foreign_key: 'submission_id', inverse_of: nil
+    has_many :file_uploads, as: :owner, inverse_of: nil
 
     scope :within_courses, ->(course_ids) do
       joins(:assessment).where({assessment: { course_id: course_ids }}).includes(gradings: :exp_transaction)

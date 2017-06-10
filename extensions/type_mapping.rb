@@ -13,6 +13,7 @@ TYPE_MAPPING = {
   'Achievement' => V1::Achievement.name,
   'Level' => V1::Level.name,
   'Assessment' => V1::Assessment.name,
+  'Assessment::Submission' => V1::AssessmentSubmission.name,
   'AsmReq' => V1::AsmReq.name,
   'Material' => V1::Material.name
 }
