@@ -16,7 +16,9 @@ TYPE_MAPPING = {
   'Announcement' => V1::Announcement.name,
   'Achievement' => V1::Achievement.name,
   'Level' => V1::Level.name,
-  'Material' => V1::Material.name
+  'Material' => V1::Material.name,
+  'ForumPost' => V1::ForumPost.name,
+  'ForumTopic' => V1::ForumTopic.name,
 }
 
 module ActiveRecord

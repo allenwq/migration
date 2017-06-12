@@ -42,6 +42,7 @@ class ForumPostTable < BaseTable
             false
           end
         end
+        old.migrate_seen_by_users(store, new)
 
         store.set(model.table_name, old.id, new.id)
       end

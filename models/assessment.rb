@@ -7,6 +7,7 @@ module V1
   def_model 'assessments' do
     has_many :file_uploads, as: :owner, inverse_of: nil
     belongs_to :as_assessment, polymorphic: true, inverse_of: nil
+    include SeenByUserConcern
 
     def specific
       as_assessment

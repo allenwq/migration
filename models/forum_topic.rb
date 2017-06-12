@@ -1,6 +1,7 @@
 module V1
   def_model 'forum_topics' do
     belongs_to :forum, class_name: 'ForumForum', inverse_of: nil
+    include SeenByUserConcern
 
     scope :within_courses, ->(course_ids) do
       joins(:forum).where(forum: { course_id: Array(course_ids)})
@@ -56,6 +57,12 @@ module V1
     end
 
     def send_notification
+    end
+
+    def mark_as_read_for_creator
+    end
+
+    def mark_as_read_for_updater
     end
   end
 end
