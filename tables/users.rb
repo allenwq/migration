@@ -15,7 +15,7 @@ class UserTable < BaseTable
         next
       end
 
-      Logger.log "migrate #{old.id}"
+      @logger.log "migrate #{old.id}"
       new = ::User.new
 
       migrate(old, new) do
@@ -78,7 +78,7 @@ class UserTable < BaseTable
     new = ::User.find_by(id: new_id)
 
     unless new.present?
-      Logger.log "Cannot find user #{new_id}, old: #{old.id}"
+      @logger.log "Cannot find user #{new_id}, old: #{old.id}"
       return
     end
 

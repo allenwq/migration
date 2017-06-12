@@ -81,7 +81,7 @@ class AssessmentQuestionSkillTable < BaseTable
           new.save(validate: false)
           store.set(model.table_name, old.id, new.id)
         else
-          Logger.log "Invalid #{old.class} #{old.primary_key_value}: question_id: #{new.question_id}, skill_id: #{new.skill_id}"
+          @logger.log "Invalid #{old.class} #{old.primary_key_value}: question_id: #{new.question_id}, skill_id: #{new.skill_id}"
         end
       end
     end

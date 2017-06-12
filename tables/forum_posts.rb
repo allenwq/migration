@@ -9,7 +9,7 @@ class ForumPostTable < BaseTable
         column :parent_id do
           dst_id = store.get(V1::ForumPost.table_name, old.parent_id)
           if old.parent_id && !dst_id
-            Logger.log "Cannot find parent for #{old.class.name} #{old.id}"
+            @logger.log "Cannot find parent for #{old.class.name} #{old.id}"
           end
 
           dst_id

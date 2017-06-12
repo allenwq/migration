@@ -24,7 +24,7 @@ class ForumPostVoteTable < BaseTable
           skip_saving_unless_valid
           store.set(model.table_name, old.id, new.id)
         else
-          Logger.log("#{old.class.name} #{old.id}: creator is nil")
+          @logger.log("#{old.class.name} #{old.id}: creator is nil")
         end
       end
     end
