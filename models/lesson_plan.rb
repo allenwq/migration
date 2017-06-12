@@ -1,5 +1,5 @@
 module V1
-  def_model 'lesson_plan_milestones', 'lesson_plan_resources'
+  def_model 'lesson_plan_milestones'
 
   def_model 'lesson_plan_entries' do
     # V1:
