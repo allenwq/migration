@@ -7,7 +7,7 @@ class CommentTopicTable < BaseTable
       new = ::Course::Assessment::SubmissionQuestion.new
 
       if old.topic.present?
-        sq = ::Course::Assessment::SubmissionQuestion.find_by(submission_id: old.transform_submission_id, question_id: old.transform_question_id)
+        sq = ::Course::Assessment::SubmissionQuestion.find_by(submission_id: old.transform_submission_id(store), question_id: old.transform_question_id(store))
         if sq
           # Memorize the result if target exists
           store.set(model.table_name, old.id, sq.id)
@@ -37,7 +37,7 @@ class CommentTopicTable < BaseTable
         new.acting_as.updated_at = old.last_commented_at || old.updated_at
 
         skip_saving_unless_valid
-        store.set(model.table_name, old.id, sq.id)
+        store.set(model.table_name, old.id, new.id)
       end
     end
   end
@@ -49,7 +49,7 @@ class AssessmentCommentTable < BaseTable
 
   def migrate_batch(batch)
     batch.each do |old|
-      new = ::Course::Discussion::Post
+      new = ::Course::Discussion::Post.new
 
       migrate(old, new) do
         column :topic_id do
@@ -69,7 +69,7 @@ class AssessmentCommentTable < BaseTable
         column :updated_at
 
         skip_saving_unless_valid
-        store.set(model.table_name, old.id, sq.id)
+        store.set(model.table_name, old.id, new.id)
       end
     end
   end
@@ -81,7 +81,7 @@ class AssessmentAnnotationTable < BaseTable
 
   def migrate_batch(batch)
     batch.each do |old|
-      new = ::Course::Discussion::Post
+      new = ::Course::Discussion::Post.new
 
       migrate(old, new) do
         column :topic do
@@ -108,7 +108,7 @@ class AssessmentAnnotationTable < BaseTable
         column :updated_at
 
         skip_saving_unless_valid
-        store.set(model.table_name, old.id, sq.id)
+        store.set(model.table_name, old.id, new.id)
       end
     end
   end
