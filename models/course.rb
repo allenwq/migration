@@ -14,9 +14,9 @@ module V1
         CourseNavbarPreference.new(name: 'Missions', pos: 3)
     end
 
-    def transform_logo
+    def transform_logo(logger)
       if logo_url.present?
-        Downloader.download_to_local(logo_url, self)
+        Downloader.download_to_local(logo_url, self, logger)
       end
     end
 

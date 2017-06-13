@@ -13,14 +13,14 @@ class ContentParser
   # Parse the image in the record, and translate them into attachment_references
   # Url format:
   # <img alt="" src="http://coursemology.s3.amazonaws.com/file_uploads/files/xxx">
-  def self.parse_images(record, content)
+  def self.parse_images(record, content, logger)
     html = Nokogiri::HTML(content)
     h = {}
     references = []
     html.xpath('//img').each do |image|
       src = image['src']
       if src.present? && src.starts_with?('http://coursemology.s3.amazonaws.com/')
-        download_proc = proc { Downloader.download_to_local(src, record) }
+        download_proc = proc { Downloader.download_to_local(src, record, logger) }
         attachment_reference = Downloader.url_to_attachment_reference(
           src,
           download_proc

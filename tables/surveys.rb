@@ -15,7 +15,7 @@ class SurveyTable < BaseTable
         end
         column :description do
           description = ContentParser.parse_mc_tags(old.description)
-          description, references = ContentParser.parse_images(old, description)
+          description, references = ContentParser.parse_images(old, description, logger)
           new.attachment_references = references if references.any?
           description
         end

@@ -5,7 +5,7 @@ class AssessmentTrqQuestionTable < BaseTable
   def migrate_batch(batch)
     batch.each do |old|
       new = ::Course::Assessment::Question::TextResponse.new
-      
+
       migrate(old, new) do
         column :assessment_id do
           original_assessment_id = old.assessment_question.assessments.first.id
@@ -16,7 +16,7 @@ class AssessmentTrqQuestionTable < BaseTable
         end
         column :description do
           description = ContentParser.parse_mc_tags(old.assessment_question.description)
-          description, references = ContentParser.parse_images(old, description)
+          description, references = ContentParser.parse_images(old, description, logger)
           new.question.attachment_references = references if references.any?
           description
         end
@@ -35,7 +35,7 @@ class AssessmentTrqQuestionTable < BaseTable
         column :created_at
 
         skip_saving_unless_valid
-        
+
         store.set(model.table_name, old.id, new.id)
       end
     end

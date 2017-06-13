@@ -5,7 +5,7 @@ class MaterialFolderTable < BaseTable
   def migrate_batch(batch)
     batch.each do |old|
       new = ::Course::Material::Folder.new
-      
+
       migrate(old, new) do
         column :parent_id do
           if old.parent_folder_id
@@ -66,7 +66,7 @@ class MaterialTable < BaseTable
           old.transform_name
         end
         column :attachment_reference do
-          old.file_upload.transform_attachment_reference(store)
+          old.file_upload.transform_attachment_reference(store, logger)
         end
         column :description
         column :creator_id do

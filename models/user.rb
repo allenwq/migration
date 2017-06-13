@@ -4,14 +4,14 @@ module V1
     # All photos in this CDN are not accessible any more
     INVALID_URL = 'https://fbcdn-profile-a.akamaihd.net/'
 
-    def transform_profile_photo
+    def transform_profile_photo(logger)
       if profile_photo_url.present? &&
         profile_photo_url != DEFAULT_PIC_URL &&
         !profile_photo_url.starts_with?(INVALID_URL)
 
         file_name = nil
         file_name = 'facebook.jpg' if facebook_url?(profile_photo_url)
-        Downloader.download_to_local(profile_photo_url, self, file_name)
+        Downloader.download_to_local(profile_photo_url, self, logger, file_name)
       end
     end
 

@@ -28,7 +28,7 @@ class UserTable < BaseTable
           new.skip_confirmation_notification!
         end
 
-        photo_file = old.transform_profile_photo
+        photo_file = old.transform_profile_photo(logger)
         if photo_file
           new.profile_photo = photo_file
           photo_file.close unless photo_file.closed?

@@ -14,7 +14,7 @@ class AchievementTable < BaseTable
         column :description do
           ContentParser.parse_mc_tags(old.description)
         end
-        if badge_file = old.transform_badge
+        if badge_file = old.transform_badge(logger)
           new.badge = badge_file
           badge_file.close unless badge_file.closed?
         end

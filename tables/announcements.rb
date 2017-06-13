@@ -5,7 +5,7 @@ class AnnouncementTable < BaseTable
   def migrate_batch(batch)
     batch.each do |old|
       new = ::Course::Announcement.new
-      
+
       migrate(old, new) do
         column :course_id do
           store.get(V1::Course.table_name, old.course_id)
@@ -18,7 +18,7 @@ class AnnouncementTable < BaseTable
         end
         column :content do
           description = ContentParser.parse_mc_tags(old.description)
-          description, references = ContentParser.parse_images(old, description)
+          description, references = ContentParser.parse_images(old, description, logger)
           new.attachment_references = references if references.any?
           description
         end

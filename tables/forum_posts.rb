@@ -21,7 +21,7 @@ class ForumPostTable < BaseTable
         column :title
         column :text do
           text = ContentParser.parse_mc_tags(old.text)
-          text, references = ContentParser.parse_images(old, text)
+          text, references = ContentParser.parse_images(old, text, logger)
           new.attachment_references = references if references.any?
           text
         end

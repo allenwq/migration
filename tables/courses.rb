@@ -46,7 +46,7 @@ class CourseTable < BaseTable
         column :updated_at
         column :created_at
 
-        logo_file = old.transform_logo
+        logo_file = old.transform_logo(logger)
         if logo_file
           new.logo = logo_file
           logo_file.close unless logo_file.closed?
