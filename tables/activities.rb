@@ -15,7 +15,7 @@ class ActivityTable < BaseTable
       if activity.valid?
         activity.save!
       else
-        @logger.log "Invalid #{old.class} #{old.primary_key_value}: #{activity.errors.full_messages.to_sentence}"
+        logger.log "Invalid #{old.class} #{old.primary_key_value}: #{activity.errors.full_messages.to_sentence}"
         next
       end
 

@@ -10,19 +10,39 @@ class CourseMigrator
   end
 
   def start
-    new_course_id = if concurrency <= 1
-                      single_thread_migrate
-                    else
-                      parallel_migrate
-                    end
+    puts "Course #{course_id} migration started"
 
-    @logger.log "Course #{@course_id} is migrated to #{new_course_id}" if new_course_id
+    time = timer do
+      new_course_id = migrate
+    end.round(1)
+
+    logger.log "Course #{course_id} is migrated to #{new_course_id}" if new_course_id
+    logger.log "Migration finished in #{time} s"
+    puts "Course #{course_id} migration finished in #{time} s"
+  rescue Exception => e
+    logger.error e
+    puts "Course #{course_id} migration errored, check logs for details"
   end
 
   private
 
+  def timer
+    start = Time.now
+    yield if block_given?
+
+    Time.now - start
+  end
+
+  def migrate
+    if concurrency <= 1
+      single_thread_migrate
+    else
+      parallel_migrate
+    end
+  end
+
   def single_thread_migrate
-    @logger.log "Start migrating course #{course_id} ..."
+    logger.log "Start migrating course #{course_id} ..."
     new_course_id = nil
 
     ::Course.transaction do
@@ -35,7 +55,7 @@ class CourseMigrator
   end
 
   def parallel_migrate
-    @logger.log "Start migrating course #{course_id} using #{concurrency} processes..."
+    logger.log "Start migrating course #{course_id} using #{concurrency} processes..."
     new_course_id = nil
 
     begin
@@ -47,8 +67,8 @@ class CourseMigrator
         new_course_id = ret[0] if t.is_a?(CourseTable) && ret
       end
     rescue Exception => e
-      @logger.error e
-      @logger.log "Migration of #{course_id} failed, rolling back and deleting target course #{new_course_id}"
+      logger.error e
+      logger.log "Migration of #{course_id} failed, rolling back and deleting target course #{new_course_id}"
 
       if new_course_id
         ensure_db_connection
@@ -65,7 +85,7 @@ class CourseMigrator
   def tables
     @tables ||= begin
       ts = []
-      ts << CourseTable.new(store, @logger, course_id, fix_id: @fix_id)
+      ts << CourseTable.new(store, logger, course_id, fix_id: @fix_id)
 
       ts += [
         CourseUserTable,
@@ -128,7 +148,7 @@ class CourseMigrator
         GuildUserTable,
         CourseUserInvitationTable,
 
-      ].map { |t| t.new(store, @logger, course_id, concurrency) }
+      ].map { |t| t.new(store, logger, course_id, concurrency) }
 
       ts
     end
@@ -148,7 +168,7 @@ class CourseMigrator
   end
 
   def move_course_to_instance(course, instance)
-    @logger.log "Moving course #{course.id} to #{instance.host} ..."
+    logger.log "Moving course #{course.id} to #{instance.host} ..."
 
     # Move users belongs to courses in the instance to the instance.
     user_ids_to_move = course.users.select(:id)
@@ -161,7 +181,7 @@ class CourseMigrator
 
   # There are annotations of same file and line, this is to merge them into one.
   def merge_annotation_topics(course_ids)
-    @logger.log "Merging annotation topics for course #{course_ids.join(', ')}"
+    logger.log "Merging annotation topics for course #{course_ids.join(', ')}"
 
     course_ids.each do |course_id|
       ids = Course::Assessment::Answer::ProgrammingFileAnnotation.joins(:discussion_topic).

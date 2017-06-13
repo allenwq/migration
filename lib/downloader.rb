@@ -28,7 +28,7 @@ class Downloader
         if tries > 0
           retry
         else
-          puts Logger.log "Download #{object.class} #{object.primary_key_value} failed, error: #{e.inspect}"
+          puts "Download #{object.class} #{object.primary_key_value} failed, error: #{e.inspect}"
           local_file.close
           File.delete(local_file_path)
           local_file_path = nil
