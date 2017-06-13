@@ -11,8 +11,7 @@ class GuildTable < BaseTable
           store.get(V1::Course.table_name, old.course_id)
         end
         column :name
-        # TODO: Add description
-        #column :description
+        column :description
         column :creator_id do
           User::SYSTEM_USER_ID
         end
