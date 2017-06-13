@@ -71,7 +71,7 @@ class AssessmentQuestionSkillTable < BaseTable
 
       migrate(old, new) do
         column :question_id do
-          V1::AssessmentQuestion.get_target_specific_id(store, old.taggable_id)
+          V1::AssessmentQuestion.get_target_id(store, old.taggable_id)
         end
         column :skill_id do
           store.get(V1::Tag.table_name, old.tag_id)

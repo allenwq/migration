@@ -103,12 +103,16 @@ class CourseMigrator
         AssessmentSkillGroupTable,
         AssessmentSkillTable,
         AssessmentQuestionSkillTable,
+        CommentTopicTable,
+        AssessmentCommentTable,
+        AssessmentAnnotationTable,
 
         ConditionTable,
         AssessmentConditionTable,
 
         MaterialFolderTable,
         MaterialTable,
+        LessonPlanEventMaterialTable,
 
         SurveyTable,
         SurveySectionTable,

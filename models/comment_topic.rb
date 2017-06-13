@@ -19,7 +19,9 @@ module V1
     end
 
     def transform_question_id(store)
-      store.get(AssessmentQuestion.table_name, topic.question_id)
+      # TODO: store the mapping of general question table id and use the implementation in comment
+      # store.get(AssessmentQuestion.table_name, topic.question_id)
+      AssessmentQuestion.get_target_id(store, topic.question_id)
     end
   end
 end

@@ -4,8 +4,8 @@ module V1
     has_many :assessments, through: :question_assessments, inverse_of: nil
     belongs_to :as_question, polymorphic: true, inverse_of: nil
 
-    # Takes in general question id and return the target v2 specific id
-    def self.get_target_specific_id(store, src_id)
+    # Takes in general question id and return the v2 general question id
+    def self.get_target_id(store, src_id)
       src_question = find(src_id)
       src_specific_question = src_question.as_question
       dst_specific_question_id = store.get(src_specific_question.class.table_name, src_specific_question.id)

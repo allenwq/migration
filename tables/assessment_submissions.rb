@@ -81,7 +81,7 @@ class AssessmentSubmissionTable < BaseTable
 
   def build_file_upload_answer(store, old_submission, new_submission)
     answer = ::Course::Assessment::Answer::TextResponse.new
-    answer.question = new_submission.assessment.questions.map(&:specific).detect { |q| q.file_upload_question? }.acting_as
+    answer.question = new_submission.assessment.questions.map(&:specific).detect { |q| q.try(:file_upload_question?) }.acting_as
     answer.created_at = new_submission.created_at
     answer.updated_at = new_submission.updated_at
     answer.workflow_state = case old_submission.status
