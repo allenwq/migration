@@ -22,5 +22,11 @@ module V1
     belongs_to :comment_topic, inverse_of: nil
     belongs_to :course, inverse_of: nil
     belongs_to :user_course, inverse_of: nil
+
+    scope :within_courses, ->(course_ids) do
+      joins(:comment_topic).
+        where(course_id: Array(course_ids)).
+        where(comment_topics: { topic_type: 'Assessment::Answer'})
+    end
   end
 end
