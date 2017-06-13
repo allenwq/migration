@@ -91,6 +91,8 @@ class AssessmentTable < BaseTable
 
         skip_saving_unless_valid
 
+        old.migrate_seen_by_users(store, new)
+
         store.set(model.table_name, old.id, new.id)
       end
     end

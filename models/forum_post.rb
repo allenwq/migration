@@ -2,6 +2,7 @@ module V1
   def_model 'forum_posts' do
     belongs_to :topic, class_name: 'ForumTopic', inverse_of: nil
     belongs_to :parent, class_name: 'ForumPost', inverse_of: nil
+    include SeenByUserConcern
 
     scope :within_courses, ->(course_ids) do
       joins(topic: :forum).

@@ -22,6 +22,7 @@ module V1
   def_model 'materials' do
     belongs_to :folder, class_name: 'MaterialFolder', inverse_of: nil
     has_one :file_upload, as: :owner, inverse_of: nil
+    include SeenByUserConcern
 
     scope :within_courses, ->(course_ids) {
       joins(:folder).where(folder: { course_id: course_ids }).includes(:file_upload)
