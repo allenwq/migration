@@ -6,9 +6,15 @@ class UserTable < BaseTable
     batch.each do |old|
       new_id = store.get(V1::User.table_name, old.id)
       if new_id.present?
-        fix_timestamps(old, new_id)
-        fix_permissions(old, new_id)
-        next # Don't migrate if user is memoized.
+        new_user = ::User.find_by(id: new_id)
+        if new_user
+          # Don't migrate if user is memoized.
+          fix_timestamps(old, new_user)
+          fix_permissions(old, new_user)
+          next
+        else
+          logger.log "Cannot find user #{new_id}, old: #{old.id}"
+        end
       elsif v2_email = User::Email.find_by(email: old.email)
         # If there's already an email, just memoize and return
         store.set(model.table_name, old.id, v2_email.user_id)
@@ -73,23 +79,15 @@ class UserTable < BaseTable
     end
   end
 
-  def fix_timestamps(old, new_id)
-    # Map v1 user timestamps to v2
-    new = ::User.find_by(id: new_id)
-
-    unless new.present?
-      logger.log "Cannot find user #{new_id}, old: #{old.id}"
-      return
-    end
-
+  def fix_timestamps(old, new)
     if (new.updated_at - new.created_at).abs < 1.minute
       new.update_column(:updated_at, old.updated_at)
     end
     new.update_column(:created_at, old.created_at)
   end
 
-  def fix_permissions(old, new_id)
-    return unless ::User.find_by(id: new_id).present?
+  def fix_permissions(old, new)
+    new_id = new.id
     # If the old user is a lecturer on v1, it should be a lecturer on v2 default instance
     return unless old.system_role_id == 3
 
@@ -97,8 +95,10 @@ class UserTable < BaseTable
     return if ius.any? { |iu| iu.role == 'instructor' }
 
     if ius.empty?
+      logger.log "Create instance instructor for #{new_id}, old: #{old.id}"
       ::InstanceUser.create(user_id: new_id, role: :instructor)
     else
+      logger.log "Update #{new_id}'s role to instructor, old: #{old.id}"
       ius.first.update_column(:role, 1)
     end
   end
