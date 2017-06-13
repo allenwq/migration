@@ -3,6 +3,6 @@ class UserMigrator
   end
 
   def start
-    UserTable.new(RedisStore.instance, [], 3).run
+    UserTable.new(RedisStore.instance, Logger.new).run
   end
 end

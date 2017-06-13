@@ -19,7 +19,7 @@ unless defined? Rails::Console
   # UserMigrator.new.start
   course_ids.each do |id|
     pool.schedule do
-      logger = Logger.new(id)
+      logger = CourseLogger.new(id)
       CourseMigrator.new(id, logger, concurrency: 1, fix_id: true).start
     end
   end

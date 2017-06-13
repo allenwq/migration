@@ -169,4 +169,3 @@ end
 #   t.datetime "confirmation_sent_at"
 #   t.string   "unconfirmed_email",    :limit=>255
 # end
-
