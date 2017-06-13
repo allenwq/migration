@@ -21,7 +21,9 @@ class CommentTopicTable < BaseTable
         column :course_id do
           old.transform_course_id(store)
         end
-        column :pending => :pending_staff_reply
+        column :pending_staff_reply do
+          !!old.pending
+        end
         column :submission_id do
           old.transform_submission_id(store)
         end
