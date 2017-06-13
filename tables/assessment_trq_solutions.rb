@@ -33,10 +33,6 @@ class AssessmentTrqExactMatchSolutionTable < BaseTable
     batch.each do |old|
       new = ::Course::Assessment::Question::TextResponseSolution.new
 
-      # TODO: Add correct column in v2
-      # Only migrate the correct options since v2 do not support incorrect match
-      next if !old.correct
-
       migrate(old, new) do
         column :question_id do
           store.get(V1::AssessmentGeneralQuestion.table_name, old.general_question_id)
@@ -47,8 +43,12 @@ class AssessmentTrqExactMatchSolutionTable < BaseTable
         end
         column :answer => :solution
         column :grade do
-          # V1 don't have grade for each option, give the max grade of the question
-          Course::Assessment::Question::TextResponse.find(new.question_id).maximum_grade
+          if old.correct
+            # V1 don't have grade for each option, give the max grade of the question
+            Course::Assessment::Question::TextResponse.find(new.question_id).maximum_grade
+          else
+            0 # Set grade to zero for those not correct solutions
+          end
         end
 
         skip_saving_unless_valid

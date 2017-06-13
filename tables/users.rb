@@ -74,7 +74,7 @@ class UserTable < BaseTable
         new.save!(validate: false)
         store.set(model.table_name, old.id, new.id)
 
-        fix_permissions(old, new.id)
+        fix_permissions(old, new)
       end
     end
   end
