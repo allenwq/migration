@@ -12,8 +12,9 @@ class CourseMigrator
   def start
     puts "Course #{course_id} migration started"
 
+    new_course_id = nil
     time = timer do
-      new_course_id = migrate
+      new_course_id = migrate()
     end.round(1)
 
     logger.log "Course #{course_id} is migrated to #{new_course_id}" if new_course_id
