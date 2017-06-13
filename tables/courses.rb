@@ -2,8 +2,8 @@ class CourseTable < BaseTable
   table_name 'courses'
   scope { |ids| where(id: ids) }
 
-  def initialize(store, ids, options = {})
-    super(store, ids, 1)
+  def initialize(store, logger, ids, options = {})
+    super(store, logger, ids, 1)
     @course_ids = Array(ids)
     @fix_id = options[:fix_id].nil? ? true : options[:fix_id]
   end
@@ -50,7 +50,7 @@ class CourseTable < BaseTable
         column :updated_at
         column :created_at
 
-        logo_file = old.transform_logo
+        logo_file = old.transform_logo(logger)
         if logo_file
           new.logo = logo_file
           logo_file.close unless logo_file.closed?

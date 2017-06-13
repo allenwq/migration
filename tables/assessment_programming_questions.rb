@@ -6,7 +6,7 @@ class AssessmentProgrammingQuestionTable < BaseTable
     batch.each do |old|
       new = ::Course::Assessment::Question::Programming.new
       build_programming_package(old, new)
-      
+
       migrate(old, new) do
         column :assessment_id do
           original_assessment_id = old.assessment_question.assessments.first.id
@@ -14,7 +14,7 @@ class AssessmentProgrammingQuestionTable < BaseTable
         end
         column :description do
           description = ContentParser.parse_mc_tags(old.assessment_question.description)
-          description, references = ContentParser.parse_images(old, description)
+          description, references = ContentParser.parse_images(old, description, logger)
           new.question.attachment_references = references if references.any?
           description
         end
@@ -75,7 +75,7 @@ class AssessmentProgrammingQuestionTable < BaseTable
       end
     end
   end
-  
+
   def build_programming_package(old, new)
     # Migrate programming package
     tests = old.tests.present? ? JSON.parse(old.tests) : {}
@@ -83,13 +83,13 @@ class AssessmentProgrammingQuestionTable < BaseTable
     private_tests = []
     eval_tests = []
     identifer_prefix = 'AutoGrader/AutoGrader/'
-  
+
     tests['public'] && tests['public'].each.with_index(1) do |test, index|
       public_tests << {
         expected: test['expected'],
         expression: test['expression']
       }
-  
+
       new.test_cases.build(
         identifier: "#{identifer_prefix}test_public_#{format('%02i', index)}",
         test_case_type: 'public_test',
@@ -97,14 +97,14 @@ class AssessmentProgrammingQuestionTable < BaseTable
         expected: test['expected']
       )
     end
-  
+
     tests['private'] && tests['private'].each.with_index(1) do |test, index|
       private_tests << {
         expected: test['expected'],
         expression: test['expression'],
         hint: test['hint']
       }
-  
+
       new.test_cases.build(
         identifier: "#{identifer_prefix}test_private_#{format('%02i', index)}",
         test_case_type: 'private_test',
@@ -113,14 +113,14 @@ class AssessmentProgrammingQuestionTable < BaseTable
         hint: test['hint']
       )
     end
-  
+
     tests['eval'] && tests['eval'].each.with_index(1) do |test, index|
       eval_tests << {
         expected: test['expected'],
         expression: test['expression'],
         hint: test['hint']
       }
-  
+
       new.test_cases.build(
         identifier: "#{identifer_prefix}test_evaluation_#{format('%02i', index)}",
         test_case_type: 'evaluation_test',
@@ -129,14 +129,14 @@ class AssessmentProgrammingQuestionTable < BaseTable
         hint: test['hint']
       )
     end
-  
+
     data_files = []
     # Find the orignal assessment
     origin_assessment = old.assessment
     origin_assessment && origin_assessment.file_uploads.each do |file|
       next if file.original_name.end_with?('.pdf')
-  
-      local_file = file.download_to_local
+
+      local_file = file.download_to_local(logger)
       tmp_file = Rack::Test::UploadedFile.new(local_file.path)
       # The default name is a random hash
       tmp_file.instance_variable_set(:@original_filename, file.original_name)
@@ -156,12 +156,12 @@ class AssessmentProgrammingQuestionTable < BaseTable
         evaluation: eval_tests
       }
     }
-  
+
     params = ActionController::Parameters.new(question_programming: params)
     service = ::Course::Assessment::Question::Programming::Python::PythonPackageService.new(params)
-  
+
     templates = service.submission_templates
-  
+
     if old.auto_graded
       new.file = service.generate_package(nil)
       new.template_files = templates.map do |template|
@@ -174,7 +174,7 @@ class AssessmentProgrammingQuestionTable < BaseTable
         Course::Assessment::Question::ProgrammingTemplateFile.new(template)
       end
     end
-  
+
     new.package_type = :online_editor
     data_files.each(&:close)
   end

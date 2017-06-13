@@ -3,7 +3,7 @@ class Downloader
 
   class << self
     # Download the url to local and return an open file. nil will be returned if failed.
-    def download_to_local(url, object, file_name = nil)
+    def download_to_local(url, object, logger, file_name = nil)
       if path = $url_mapper.get_file_path(url)
         return File.open(path) if File.exist?(path)
       end
@@ -28,7 +28,7 @@ class Downloader
         if tries > 0
           retry
         else
-          Logger.log "Download #{object.class} #{object.primary_key_value} failed, error: #{e.inspect}"
+          logger.log "Download #{object.class} #{object.primary_key_value} failed, error: #{e.inspect}"
           local_file.close
           File.delete(local_file_path)
           local_file_path = nil

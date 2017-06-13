@@ -1,9 +1,10 @@
 class BaseTable
-  attr_reader :store, :course_ids, :concurrency
+  attr_reader :store, :logger, :course_ids, :concurrency
 
-  def initialize(store, course_ids = [], concurrency = 1)
+  def initialize(store, logger, course_ids = [], concurrency = 1)
     @store = store
     @course_ids = Array(course_ids)
+    @logger = logger
     @concurrency = concurrency
     setup_tenant_and_stamper
 
@@ -38,7 +39,7 @@ class BaseTable
   def run
     time = timer do
       table = self.class.instance_variable_get(:@table_name)
-      Logger.log("Migrate #{table}...")
+      logger.log("Migrate #{table}...")
 
       if process_in_batches?
         stabilize_source_connection if parallel?
@@ -53,7 +54,7 @@ class BaseTable
       @worker.wait if @worker
     end
 
-    Logger.log("Finished in #{time.round(1)}s")
+    logger.log("Finished in #{time.round(1)}s")
   end
 
   # Rollback the changes in Redis in case of failure
@@ -170,7 +171,7 @@ class DSL
     elsif !block_given? && new.valid?
       new.save(validate: false)
     else
-      Logger.log "Invalid #{old.class} #{old.primary_key_value}: #{new.errors.full_messages.to_sentence}"
+      logger.log "Invalid #{old.class} #{old.primary_key_value}: #{new.errors.full_messages.to_sentence}"
     end
   end
 

@@ -5,13 +5,13 @@ class MaterialFolderTable < BaseTable
   def migrate_batch(batch)
     batch.each do |old|
       new = ::Course::Material::Folder.new
-      
+
       migrate(old, new) do
         column :parent_id do
           if old.parent_folder_id
             dst_id = store.get(V1::MaterialFolder.table_name, old.parent_folder_id)
             if dst_id.blank?
-              Logger.log "Cannot find parent for #{old.class.name} #{old.id}"
+              logger.log "Cannot find parent for #{old.class.name} #{old.id}"
             end
             dst_id
           end
@@ -43,7 +43,7 @@ class MaterialFolderTable < BaseTable
           other = new.parent.children.find_by(name: new.name)
           store.set(model.table_name, old.id, other.id) if other
         else
-          Logger.log "Invalid #{old.class} #{old.primary_key_value}: #{errors.full_messages.to_sentence}"
+          logger.log "Invalid #{old.class} #{old.primary_key_value}: #{errors.full_messages.to_sentence}"
         end
       end
     end
@@ -66,7 +66,7 @@ class MaterialTable < BaseTable
           old.transform_name
         end
         column :attachment_reference do
-          old.file_upload.transform_attachment_reference(store)
+          old.file_upload.transform_attachment_reference(store, logger)
         end
         column :description
         column :creator_id do

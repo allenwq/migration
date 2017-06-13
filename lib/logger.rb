@@ -1,5 +1,8 @@
 class Logger
-  def self.log(msg)
+  def initialize
+  end
+
+  def log(msg)
     puts msg
   end
 end

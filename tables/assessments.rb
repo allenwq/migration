@@ -16,7 +16,7 @@ class AssessmentTable < BaseTable
         end
         column :description do
           description = ContentParser.parse_mc_tags(old.description)
-          description, references = ContentParser.parse_images(old, description)
+          description, references = ContentParser.parse_images(old, description, logger)
           new.attachment_references = references if references.any?
           description
         end
@@ -75,7 +75,7 @@ class AssessmentTable < BaseTable
 
         names = []
         old.file_uploads.visible.each do |file|
-          attachment = file.transform_attachment_reference(store)
+          attachment = file.transform_attachment_reference(store, logger)
           if attachment
             name = get_valid_name(Pathname.normalize_filename(attachment.name), names)
             m = new.folder.materials.build(attachment_reference: attachment, name: name,

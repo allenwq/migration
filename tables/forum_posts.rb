@@ -9,7 +9,7 @@ class ForumPostTable < BaseTable
         column :parent_id do
           dst_id = store.get(V1::ForumPost.table_name, old.parent_id)
           if old.parent_id && !dst_id
-            Logger.log "Cannot find parent for #{old.class.name} #{old.id}"
+            logger.log "Cannot find parent for #{old.class.name} #{old.id}"
           end
 
           dst_id
@@ -21,7 +21,7 @@ class ForumPostTable < BaseTable
         column :title
         column :text do
           text = ContentParser.parse_mc_tags(old.text)
-          text, references = ContentParser.parse_images(old, text)
+          text, references = ContentParser.parse_images(old, text, logger)
           new.attachment_references = references if references.any?
           text
         end

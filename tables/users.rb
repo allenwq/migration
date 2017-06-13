@@ -15,7 +15,7 @@ class UserTable < BaseTable
         next
       end
 
-      Logger.log "migrate #{old.id}"
+      logger.log "migrate #{old.id}"
       new = ::User.new
 
       migrate(old, new) do
@@ -28,7 +28,7 @@ class UserTable < BaseTable
           new.skip_confirmation_notification!
         end
 
-        photo_file = old.transform_profile_photo
+        photo_file = old.transform_profile_photo(logger)
         if photo_file
           new.profile_photo = photo_file
           photo_file.close unless photo_file.closed?
@@ -78,7 +78,7 @@ class UserTable < BaseTable
     new = ::User.find_by(id: new_id)
 
     unless new.present?
-      Logger.log "Cannot find user #{new_id}, old: #{old.id}"
+      logger.log "Cannot find user #{new_id}, old: #{old.id}"
       return
     end
 
@@ -169,4 +169,3 @@ end
 #   t.datetime "confirmation_sent_at"
 #   t.string   "unconfirmed_email",    :limit=>255
 # end
-

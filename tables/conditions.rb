@@ -22,7 +22,7 @@ class ConditionTable < BaseTable
         column :created_at
 
         if new.actable.nil?
-          Logger.log "Invalid #{old.class.name} #{old.id}"
+          logger.log "Invalid #{old.class.name} #{old.id}"
         else
           skip_saving_unless_valid
           store.set(model.table_name, old.id, new.id)
