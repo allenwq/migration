@@ -38,6 +38,8 @@ class AssessmentProgrammingAnswerTable < BaseTable
         end
 
         skip_saving_unless_valid
+
+        store.set(V1::AssessmentAnswer.table_name, old.assessment_answer.id, new.acting_as.id)
         store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end

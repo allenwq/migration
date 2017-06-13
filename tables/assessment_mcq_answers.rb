@@ -33,6 +33,8 @@ class AssessmentMcqAnswerTable < BaseTable
         column :transform_created_at => :created_at
 
         skip_saving_unless_valid
+
+        store.set(V1::AssessmentAnswer.table_name, old.assessment_answer.id, new.acting_as.id)
         store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end

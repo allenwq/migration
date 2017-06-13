@@ -42,9 +42,11 @@ module V1
     end
 
     def transform_file(store)
-      dst_specific_answer_id = AssessmentAnswer.get_target_id(store, assessment_answer, specific: true)
-      if dst_specific_answer_id
-        ::Course::Assessment::Answer::ProgrammingFile.where(answer_id: dst_specific_answer_id).first
+      new_answer_id = store.get(AssessmentAnswer.table_name, assessment_answer.id)
+      new_specific_answer_id = ::Course::Assessment::Answer.find_by(id: new_answer_id)&.actable_id
+
+      if new_specific_answer_id
+        ::Course::Assessment::Answer::ProgrammingFile.where(answer_id: new_specific_answer_id).first
       end
     end
 

@@ -35,6 +35,7 @@ class AssessmentScribingQuestionTable < BaseTable
 
         skip_saving_unless_valid
 
+        store.set(V1::AssessmentQuestion.table_name, old.assessment_question.id, new.acting_as.id)
         store.set(V1::AssessmentScribingQuestion.table_name, old.id, new.id)
       end
     end
