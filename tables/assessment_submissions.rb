@@ -101,7 +101,7 @@ class AssessmentSubmissionTable < BaseTable
       answer.grader_id = new_submission.publisher_id
     end
     old_submission.file_uploads.each do |file|
-      attachment = file.transform_attachment_reference(store)
+      attachment = file.transform_attachment_reference(store, logger)
       answer.attachment_references << attachment if attachment
     end
 
