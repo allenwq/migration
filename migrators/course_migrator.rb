@@ -152,6 +152,9 @@ class CourseMigrator
         GuildUserTable,
         CourseUserInvitationTable,
 
+        ForumSubscriptionTable,
+        ForumTopicSubscriptionTable,
+        CommentSubscriptionTable,
       ].map { |t| t.new(store, logger, course_id, concurrency) }
 
       ts
