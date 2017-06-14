@@ -70,6 +70,11 @@ class AssessmentCommentTable < BaseTable
         column :created_at
         column :updated_at
 
+        if !new.topic_id
+          logger.log "Invalid #{old.class} #{old.id}, topic id is nil"
+          next
+        end
+
         new.save!(validate: false)
         store.set(model.table_name, old.id, new.id)
       end
@@ -108,6 +113,11 @@ class AssessmentAnnotationTable < BaseTable
         new.updater_id = new.creator_id
         column :created_at
         column :updated_at
+
+        if !new.topic
+          logger.log "Invalid #{old.class} #{old.id}, topic is nil"
+          next
+        end
 
         new.save!(validate: false)
         store.set(model.table_name, old.id, new.id)
