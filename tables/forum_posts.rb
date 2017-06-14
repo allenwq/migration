@@ -34,7 +34,7 @@ class ForumPostTable < BaseTable
         column :updated_at
 
         new.save!(validate: false)
-        old.migrate_seen_by_users(store, new)
+        old.migrate_seen_by_users(store, logger, new)
 
         store.set(model.table_name, old.id, new.id)
       end

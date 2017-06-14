@@ -5,7 +5,7 @@ module SeenByUserConcern
     has_many :seen_by_users, as: :obj, inverse_of: nil
   end
 
-  def migrate_seen_by_users(store, new)
+  def migrate_seen_by_users(store, logger, new)
     return if !new.id
 
     seen_by_users.includes(:user_course).find_each do |sbu|
@@ -19,7 +19,7 @@ module SeenByUserConcern
         rm.save!(validate: false)
         store.set(V1::SeenByUser.table_name, sbu.id, rm.id)
       rescue  ActiveRecord::RecordNotUnique => e
-        Logger.log "#{e.message}: #{sbu.class.name} #{sbu.id}"
+        logger.log "#{e.message}: #{sbu.class.name} #{sbu.id}"
       end
     end
   end
