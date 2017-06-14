@@ -14,11 +14,13 @@ module SeenByUserConcern
       reader_id = store.get(V1::User.table_name, sbu.user_course.user_id)
       readable_type = new.class.try(:readable_parent) || new.class.name
       # Timestamp must be >= new.updated_at, otherwise it's considered as unread
-      rm = ReadMark.new(readable_id: new.id, readable_type: readable_type, reader_id: reader_id,  reader_type: 'User', timestamp: new.updated_at)
+      rm = ReadMark.find_or_initialize_by(readable_id: new.id, readable_type: readable_type, reader_id: reader_id,  reader_type: 'User')
+      rm.timestamp = new.updated_at
+
       begin
         rm.save!(validate: false)
         store.set(V1::SeenByUser.table_name, sbu.id, rm.id)
-      rescue  ActiveRecord::RecordNotUnique => e
+      rescue Exception => e
         logger.log "#{e.message}: #{sbu.class.name} #{sbu.id}"
       end
     end
