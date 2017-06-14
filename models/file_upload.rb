@@ -8,6 +8,8 @@ module V1
 
     # Return the attachment reference or nil
     def transform_attachment_reference(store, logger)
+      return nil if file_file_name.nil?
+
       Downloader.url_to_attachment_reference(
         url,
         proc { Downloader.download_to_local(url, self, logger, file_file_name) },
