@@ -5,13 +5,20 @@ class AssessmentMcqAnswerOptionTable < BaseTable
   def migrate_batch(batch)
     batch.each do |old|
       new = ::Course::Assessment::Answer::MultipleResponseOption.new
-      
+
+      # check if `old.option` was deleted
+      new_option_id = store.get(V1::AssessmentMcqOption.table_name, old.option_id)
+      unless new_option_id
+        logger.log("Option (V1::AssessmentMcqOption #{old.option_id}) for #{old.class.name} #{old.id} is missing. Skipping.")
+        next
+      end
+
       migrate(old, new) do
         column :answer_id do
           store.get(V1::AssessmentMcqAnswer.table_name, old.answer_id)
         end
         column :option_id do
-          store.get(V1::AssessmentMcqOption.table_name, old.option_id)
+          new_option_id
         end
 
         new.save validate: false

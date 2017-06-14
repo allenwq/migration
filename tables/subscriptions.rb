@@ -53,9 +53,14 @@ class CommentSubscriptionTable < BaseTable
     batch.each do |old|
       new = ::Course::Discussion::Topic::Subscription.new
 
+      submission_question_id = store.get(V1::CommentTopic.table_name, old.comment_topic_id)
+      unless submission_question_id
+        logger.log "Skipping #{old.class.name} #{old.id}: CommentTopic #{old.comment_topic_id} not found in store."
+        next
+      end
+
       migrate(old, new) do
         column :topic_id do
-          submission_question_id = store.get(V1::CommentTopic.table_name, old.comment_topic_id)
           submission_question = Course::Assessment::SubmissionQuestion.find(submission_question_id)
           submission_question.discussion_topic.id
         end
