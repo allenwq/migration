@@ -13,7 +13,9 @@ class ForumTopicTable < BaseTable
         column :course_id do
           store.get(V1::Course.table_name, old.forum.try(:course_id))
         end
-        column :title
+        column :title do
+          old.title || 'Untitled'
+        end
         column :locked
         column :hidden
         column :topic_type do

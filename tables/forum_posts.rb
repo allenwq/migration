@@ -33,6 +33,11 @@ class ForumPostTable < BaseTable
         column :created_at
         column :updated_at
 
+        if !new.topic_id
+          logger.log "Invalid #{old.class} #{old.id}, topic id is nil"
+          next
+        end
+
         new.save!(validate: false)
         old.migrate_seen_by_users(store, logger, new)
 

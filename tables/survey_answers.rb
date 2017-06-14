@@ -47,7 +47,7 @@ class SurveyMrqAnswerTable < BaseTable
 
       migrate(old, new) do
         column :answer_id do
-          find_or_create_answer(old).id
+          find_or_create_answer(old)&.id
         end
         column :question_option_id do
           store.get(V1::SurveyQuestionOption.table_name, old.option_id)
@@ -65,6 +65,9 @@ class SurveyMrqAnswerTable < BaseTable
 
     exiting_answer = ::Course::Survey::Answer.find_by(question_id: question_id, response_id: response_id)
     return exiting_answer if exiting_answer
+
+    # Question is deleted or not linked with any surveys
+    return nil unless question_id
 
     ::Course::Survey::Answer.create!(
       question_id: question_id,
