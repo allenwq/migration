@@ -13,7 +13,7 @@ class CourseLogger
   def error(e)
     open("log/course_#{@course_id}.error", 'a') do |f|
       f.puts "#{Time.now.iso8601(3)} #{e.message}"
-      f.puts "#{Time.now.iso8601(3)} #{e.backtrace}"
+      f.puts e.backtrace
     end
   end
 end
