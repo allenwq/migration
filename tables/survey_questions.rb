@@ -23,7 +23,7 @@ class SurveyQuestionTable < BaseTable
           end
         end
         column :description do
-          old.description || ''
+          old.description || '( No Description )'
         end
         column :weight do
           old.pos || -1
