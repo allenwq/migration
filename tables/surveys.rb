@@ -46,6 +46,13 @@ class SurveyTable < BaseTable
           old.created_at
         end
 
+        if new.end_at && new.start_at && new.end_at < new.start_at
+          # Drop end_at if it's before start at
+          new.end_at = nil
+
+          logger.log "End at before start at #{old.class} #{old.id}, set to nil"
+        end
+
         skip_saving_unless_valid
         store.set(model.table_name, old.id, new.id)
       end
