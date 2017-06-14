@@ -91,7 +91,7 @@ class AssessmentTable < BaseTable
 
         skip_saving_unless_valid
 
-        old.migrate_seen_by_users(store, new)
+        old.migrate_seen_by_users(store, logger, new)
 
         store.set(model.table_name, old.id, new.id)
       end
@@ -100,7 +100,16 @@ class AssessmentTable < BaseTable
 
   def assessment_infer_new_tab_id(old, new)
     # Some assessment has a tab id of 0...
-    return store.get(V1::Tab.table_name, old.tab_id) if old.tab_id && old.tab_id > 0
+    if old.tab_id && old.tab_id > 0
+      stored_id = store.get(V1::Tab.table_name, old.tab_id)
+
+      if stored_id
+        tab = ::Course::Assessment::Tab.joins(:category).where(category: { course_id: new.course_id }).find_by(id: stored_id)
+        # Only return the new tab id if the new tab is in the same course as the assessment
+        # This is to handle the case when the old assessments point to some tabs which are in a different course.
+        return tab.id if tab
+      end
+    end
 
     # Try to assign to default tab
     new_course = Course.find(store.get(V1::Course.table_name, old.course_id))

@@ -61,7 +61,7 @@ class AssessmentCommentTable < BaseTable
           'Untitled'
         end
         column :text do
-          ContentParser.parse_mc_tags(old.text)
+          ContentParser.parse_mc_tags(old.text) || ''
         end
         column :creator_id do
           old.transform_creator_id(store)
@@ -70,7 +70,7 @@ class AssessmentCommentTable < BaseTable
         column :created_at
         column :updated_at
 
-        skip_saving_unless_valid
+        new.save!(validate: false)
         store.set(model.table_name, old.id, new.id)
       end
     end
@@ -100,7 +100,7 @@ class AssessmentAnnotationTable < BaseTable
           'Untitled'
         end
         column :text do
-          ContentParser.parse_mc_tags(old.text)
+          ContentParser.parse_mc_tags(old.text) || ''
         end
         column :creator_id do
           old.transform_creator_id(store)
@@ -109,7 +109,7 @@ class AssessmentAnnotationTable < BaseTable
         column :created_at
         column :updated_at
 
-        skip_saving_unless_valid
+        new.save!(validate: false)
         store.set(model.table_name, old.id, new.id)
       end
     end

@@ -35,7 +35,7 @@ class AnnouncementTable < BaseTable
         column :created_at
 
         skip_saving_unless_valid
-        old.migrate_seen_by_users(store, new)
+        old.migrate_seen_by_users(store, logger, new)
 
         store.set(model.table_name, old.id, new.id)
       end

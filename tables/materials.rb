@@ -80,7 +80,7 @@ class MaterialTable < BaseTable
 
         if new.attachment_reference
           skip_saving_unless_valid
-          old.migrate_seen_by_users(store, new)
+          old.migrate_seen_by_users(store, logger, new)
 
           store.set(model.table_name, old.id, new.id)
         end

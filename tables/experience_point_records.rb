@@ -9,7 +9,7 @@ class ExpRecordTable < BaseTable
       migrate(old, new) do
         column :exp => :points_awarded
         column :reason do
-          old.reason || '( No Reason )'
+          old.reason.blank? ? '( No Reason )' : old.reason
         end
         column :course_user_id do
           store.get(V1::UserCourse.table_name, old.user_course_id)

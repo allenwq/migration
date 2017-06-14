@@ -52,6 +52,14 @@ class CourseTable < BaseTable
 
         logo_file = old.transform_logo(logger)
         if logo_file
+          if File.extname(logo_file.path).blank?
+            logo_file.close
+            # it seems that png works for all courses, need to double check after migration
+            path = logo_file.path + '.png'
+            FileUtils.cp(logo_file.path, logo_file.path + '.png')
+            logo_file = File.new(path)
+            logger.log("Missing logo extension: Course #{old.id}")
+          end
           new.logo = logo_file
           logo_file.close unless logo_file.closed?
         end
