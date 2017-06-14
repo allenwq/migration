@@ -23,7 +23,7 @@ class ForumPostTable < BaseTable
           text = ContentParser.parse_mc_tags(old.text)
           text, references = ContentParser.parse_images(old, text, logger)
           new.attachment_references = references if references.any?
-          text
+          text || ''
         end
         column :creator_id do
           result = old.transform_creator_id(store)
@@ -33,15 +33,7 @@ class ForumPostTable < BaseTable
         column :created_at
         column :updated_at
 
-        skip_saving_unless_valid do
-          # Drop those records without creator
-          if creator_id.present?
-            valid?
-          else
-            errors.add(:creator, :blank)
-            false
-          end
-        end
+        new.save!(validate: false)
         old.migrate_seen_by_users(store, new)
 
         store.set(model.table_name, old.id, new.id)
