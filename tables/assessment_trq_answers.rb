@@ -32,7 +32,9 @@ class AssessmentTrqAnswerTable < BaseTable
         end
         column :transform_created_at => :created_at
 
-        column :content => :answer_text
+        column :answer_text do
+          old.content || ''
+        end
 
         skip_saving_unless_valid
 
