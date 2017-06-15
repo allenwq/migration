@@ -64,8 +64,8 @@ class CourseTable < BaseTable
           logo_file.close unless logo_file.closed?
         end
 
-        new.root_folder.created_at = old.root_folder.created_at || old.created_at
-        new.root_folder.updated_at = old.root_folder.updated_at || old.created_at
+        new.root_folder.created_at = old.root_folder&.created_at || old.created_at
+        new.root_folder.updated_at = old.root_folder&.updated_at || old.created_at
         level = new.levels.first
         level.created_at = old.created_at
         level.updated_at = old.updated_at
