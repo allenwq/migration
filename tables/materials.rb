@@ -43,7 +43,7 @@ class MaterialFolderTable < BaseTable
           other = new.parent.children.find_by(name: new.name)
           store.set(model.table_name, old.id, other.id) if other
         else
-          logger.log "Invalid #{old.class} #{old.primary_key_value}: #{errors.full_messages.to_sentence}"
+          logger.log "Invalid #{old.class} #{old.primary_key_value}: #{new.errors.full_messages.to_sentence}"
         end
       end
     end
@@ -57,6 +57,11 @@ class MaterialTable < BaseTable
   def migrate_batch(batch)
     batch.each do |old|
       new = ::Course::Material.new
+
+      unless old.file_upload
+        logger.log("Invalid Material #{old.id}, FileUpload is nil")
+        next
+      end
 
       migrate(old, new) do
         column :folder_id do

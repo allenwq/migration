@@ -9,16 +9,18 @@ class UserTable < BaseTable
         new_user = ::User.find_by(id: new_id)
         if new_user
           # Don't migrate if user is memoized.
-          fix_timestamps(old, new_user)
           fix_permissions(old, new_user)
           next
         else
           logger.log "Cannot find user #{new_id}, old: #{old.id}"
         end
       elsif v2_email = User::Email.find_by(email: old.email)
-        # If there's already an email, just memoize and return
-        store.set(model.table_name, old.id, v2_email.user_id)
-        next
+        # If there's already an email and user, just memoize and return
+        if v2_email.user_id
+          logger.log "Map old: #{old.id} to new: #{new_id}"
+          store.set(model.table_name, old.id, v2_email.user_id)
+          next
+        end
       end
 
       logger.log "migrate #{old.id}"
@@ -77,13 +79,6 @@ class UserTable < BaseTable
         fix_permissions(old, new)
       end
     end
-  end
-
-  def fix_timestamps(old, new)
-    if (new.updated_at - new.created_at).abs < 1.minute
-      new.update_column(:updated_at, old.updated_at)
-    end
-    new.update_column(:created_at, old.created_at)
   end
 
   def fix_permissions(old, new)
