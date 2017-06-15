@@ -47,7 +47,7 @@ module V1
       if transform_workflow_state == :graded
         grade = assessment_answer_grading.try(:grade)
         if grade
-          grade.to_i
+          grade
         else
           correct ? assessment_question.max_grade : 0
         end

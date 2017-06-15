@@ -242,7 +242,7 @@ class CourseTable < BaseTable
     ###################################
     # Migrate Leaderboard student count
     ###################################
-    set_unless_default.call([:course_leaderboard_component, :display_user_count], :leaderboard_student_count, "10")
+    set_unless_default.call([:course_leaderboard_component, :display_user_count], :leaderboard_student_count, "30")
 
     ###################################
     # Migrate Course Homepage Settings
