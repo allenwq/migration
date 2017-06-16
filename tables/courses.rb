@@ -2,6 +2,11 @@ class CourseTable < BaseTable
   table_name 'courses'
   scope { |ids| where(id: ids) }
 
+  def self.get_new_id(old_id)
+    # there are 616 courses in v1 now, course 110 - 616 will have the same id on v2, course 1 - 109 will become 701 to 809
+    new_id = old_id >= 110 ? old_id : old_id + 700
+  end
+
   def initialize(store, logger, ids, options = {})
     super(store, logger, ids, 1)
     @course_ids = Array(ids)
@@ -21,7 +26,7 @@ class CourseTable < BaseTable
       migrate(old, new) do
         column :id do
           # Instance variable not accessible
-          @fix_id ? old.id + 1000 : nil
+          @fix_id ? CourseTable.get_new_id(old.id) : nil
         end
 
         column :creator_id do

@@ -84,10 +84,17 @@ class MaterialTable < BaseTable
         column :updated_at
 
         if new.attachment_reference
-          skip_saving_unless_valid
-          old.migrate_seen_by_users(store, logger, new)
-
-          store.set(model.table_name, old.id, new.id)
+          if new.folder && existing = new.folder.materials.find_by(name: new.name)
+            logger.log "#{old.class} #{old.id} name is taken, map to #{existing.class} #{existing.id}"
+            old.migrate_seen_by_users(store, logger, existing)
+            store.set(model.table_name, old.id, existing.id)
+          else
+            skip_saving_unless_valid
+            old.migrate_seen_by_users(store, logger, new)
+            store.set(model.table_name, old.id, new.id)
+          end
+        else
+          logger.log "Invalid #{old.class} #{old.id}: File upload missing"
         end
       end
     end
