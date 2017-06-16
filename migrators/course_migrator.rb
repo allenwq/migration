@@ -12,7 +12,8 @@ class CourseMigrator
   def start
     puts "Course #{course_id} migration started"
     if @fix_id
-      if new_course = ::Course.unscoped.find_by(id: course_id + 1000)
+      new_id = CourseTable.get_new_id(course_id)
+      if new_course = ::Course.unscoped.find_by(id: new_id)
         puts "Course #{course_id} was already migrated to #{new_course.id}, skip"
         return
       end
