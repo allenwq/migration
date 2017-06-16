@@ -60,6 +60,12 @@ class SurveyQuestionOptionTable < BaseTable
           old.pos || -1
         end
 
+        if old.file_upload
+          column :attachment_reference do
+            old.file_upload.transform_attachment_reference(store, logger)
+          end
+        end
+
         skip_saving_unless_valid
         store.set(model.table_name, old.id, new.id)
       end

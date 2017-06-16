@@ -21,10 +21,12 @@ module V1
 
   def_model 'survey_question_options' do
     belongs_to :question, class_name: 'SurveyQuestion', inverse_of: nil
+    has_one :file_upload, as: :owner, inverse_of: nil
 
     scope :within_courses, ->(course_ids) do
       joins(question: { section: :survey }).
-        where(question: { section: { survey: { course_id: Array(course_ids) } } })
+        where(question: { section: { survey: { course_id: Array(course_ids) } } }).
+        includes(:file_upload)
     end
   end
 end

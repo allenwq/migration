@@ -19,6 +19,7 @@ TYPE_MAPPING = {
   'Material' => V1::Material.name,
   'ForumPost' => V1::ForumPost.name,
   'ForumTopic' => V1::ForumTopic.name,
+  'SurveyQuestionOption' => V1::SurveyQuestionOption.name,
 }
 
 module ActiveRecord
