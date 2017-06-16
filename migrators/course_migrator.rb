@@ -97,7 +97,6 @@ class CourseMigrator
 
       ts += [
         CourseUserTable,
-        AnnouncementTable,
         AchievementTable,
         LevelTable,
         ExpRecordTable,
@@ -141,6 +140,8 @@ class CourseMigrator
         MaterialFolderTable,
         MaterialTable,
         LessonPlanEventMaterialTable,
+
+        AnnouncementTable, # Announcements depends on materials
 
         SurveyTable,
         SurveySectionTable,
