@@ -18,6 +18,7 @@ class AnnouncementTable < BaseTable
         end
         column :content do
           description = ContentParser.parse_mc_tags(old.description)
+          description = ContentParser.parse_material_urls(store, description)
           description, references = ContentParser.parse_images(old, description, logger)
           new.attachment_references = references if references.any?
           description
