@@ -7,6 +7,8 @@ class ContentParser
 
     content.gsub!('[c]', '<span lang="python"><code>')
     content.gsub!('[/c]', '</code></span>')
+
+    content.gsub!("\u0000", '')
     content
   end
 
