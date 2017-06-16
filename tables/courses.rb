@@ -334,7 +334,6 @@ class CourseTable < BaseTable
 
   def migrate_sidebar_settings(source, destination)
     # V1 Mission and Training sidebar items are migrated in build_assessment_categories
-    # V1 Guilds sidebar items are dropped
     # V1 Comics sidebar items are dropped
 
     mapping = {
@@ -368,6 +367,13 @@ class CourseTable < BaseTable
     }
     source.course_navbar_preferences.each do |nav_pref|
       key = nav_pref.item
+
+      # Guilds not migrated as a sidebar item. Instead, if guilds are enabled, turn on group leaderboard.
+      if key == 'guilds'
+        destination.settings(:course_leaderboard_component, :group_leaderboard).enabled = nav_pref.is_enabled
+        next
+      end
+
       next unless item_hash = mapping[key]
 
       # Sidebar order
