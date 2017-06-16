@@ -11,7 +11,7 @@ class ForumSubscriptionTable < BaseTable
           store.get(V1::ForumForum.table_name, old.forum_id)
         end
         column :user_id do
-          store.get(V1::User.table_name, old.user_course.user_id)
+          store.get(V1::User.table_name, old.user_course&.user_id)
         end
 
         skip_saving_unless_valid
@@ -35,7 +35,7 @@ class ForumTopicSubscriptionTable < BaseTable
           forum_topic.discussion_topic.id
         end
         column :user_id do
-          store.get(V1::User.table_name, old.user_course.user_id)
+          store.get(V1::User.table_name, old.user_course&.user_id)
         end
 
         skip_saving_unless_valid
@@ -65,7 +65,7 @@ class CommentSubscriptionTable < BaseTable
           submission_question.discussion_topic.id
         end
         column :user_id do
-          store.get(V1::User.table_name, old.user_course.user_id)
+          store.get(V1::User.table_name, old.user_course&.user_id)
         end
 
         skip_saving_unless_valid
