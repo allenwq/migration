@@ -135,9 +135,14 @@ class AssessmentProgrammingQuestionTable < BaseTable
     data_files = []
     # Find the orignal assessment
     origin_assessment = old.assessment
+    existing_names = []
     origin_assessment && origin_assessment.file_uploads.each do |file|
       next if file.original_name.end_with?('.pdf')
-
+      if existing_names.include?(file.original_name)
+        logger.log("#{old.class.name} #{old.id}: File exists #{file.original_name}")
+        next
+      end
+      existing_names << file.original_name
       local_file = file.download_to_local(logger)
       tmp_file = Rack::Test::UploadedFile.new(local_file.path)
       # The default name is a random hash
