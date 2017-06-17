@@ -2,7 +2,7 @@ module V1
   def_model 'activities' do
     def target_actor_id(store)
       target_course_user = store.get(UserCourse.table_name, actor_course_id)
-      CourseUser.find(target_course_user).user_id
+      CourseUser.find_by(id: target_course_user)&.user_id
     end
 
     def target_object(store)
