@@ -60,8 +60,17 @@ class SurveyMrqAnswerTable < BaseTable
   end
 
   def find_or_create_answer(old)
+    survey_submission_id = old.survey_submission_id
+    if survey_submission_id.nil?
+      # Handle the case when old record has a nil survey_submisison_id
+      survey_id = old.question&.survey_id
+      if survey_id
+        survey_submission_id = V1::SurveySubmission.find_by(user_course_id: old.user_course_id, survey_id: survey_id)&.id
+        logger.log("#{old.class} #{old.id} survey_submission_id nil, set to #{survey_submission_id}")
+      end
+    end
     question_id = store.get(V1::SurveyQuestion.table_name, old.question_id)
-    response_id = store.get(V1::SurveySubmission.table_name, old.survey_submission_id)
+    response_id = store.get(V1::SurveySubmission.table_name, survey_submission_id)
 
     exiting_answer = ::Course::Survey::Answer.find_by(question_id: question_id, response_id: response_id)
     return exiting_answer if exiting_answer
