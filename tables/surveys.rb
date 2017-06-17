@@ -30,7 +30,7 @@ class SurveyTable < BaseTable
         column :publish => :published
 
         column :anonymous
-        column :allow_modify => :allow_response_after_end
+        column :allow_modify => :allow_modify_after_submit
 
         column :creator_id do
           result = store.get(V1::User.table_name, old.creator_id)
