@@ -11,6 +11,7 @@ class CourseMigrator
 
   def start
     puts "Course #{course_id} migration started"
+    logger.log "========Course #{course_id} migration started========"
     if @fix_id
       new_id = CourseTable.get_new_id(course_id)
       if new_course = ::Course.unscoped.find_by(id: new_id)
@@ -25,7 +26,7 @@ class CourseMigrator
     end.round(1)
 
     logger.log "Course #{course_id} is migrated to #{new_course_id}" if new_course_id
-    logger.log "Migration finished in #{time} s"
+    logger.log "========Migration finished in #{time} s========"
     puts "Course #{course_id} migration finished in #{time} s"
   rescue Exception => e
     logger.error e

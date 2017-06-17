@@ -6,14 +6,19 @@ class CourseLogger
 
   def log(msg)
     open("log/course_#{@course_id}.log", 'a') do |f|
-      f.puts "#{Time.now.iso8601(3)} #{msg}"
+      f.puts "#{timestamp} #{msg}"
     end
   end
 
   def error(e)
+
     open("log/course_#{@course_id}.error", 'a') do |f|
-      f.puts "#{Time.now.iso8601(3)} #{e.message}"
+      f.puts "#{timestamp} #{e.message}"
       f.puts e.backtrace
     end
+  end
+
+  def timestamp
+    Time.now.in_time_zone('Singapore').strftime('%F %T')
   end
 end
