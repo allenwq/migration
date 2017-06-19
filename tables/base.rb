@@ -75,7 +75,7 @@ class BaseTable
   end
 
   def process_in_batches?
-    source_records.respond_to?(:find_in_batches)
+    parallel?
   end
 
   protected
