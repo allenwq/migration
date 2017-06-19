@@ -33,5 +33,11 @@ module V1
                 actable_type: ::Course::Assessment::Question::Programming.name).try(:id)
     end
   end
+
+  ::Course::Assessment::Answer::ProgrammingFile.class_eval do
+    # Allow any content size to ensure data integrity.
+    def validate_content_size
+    end
+  end
 end
 
