@@ -50,6 +50,7 @@ class AssessmentTrqExactMatchSolutionTable < BaseTable
             0 # Set grade to zero for those not correct solutions
           end
         end
+        column :explanation
 
         skip_saving_unless_valid
 
