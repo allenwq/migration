@@ -4,7 +4,20 @@ class AttachmentsTable < BaseTable
 
   def migrate_batch(batch)
     batch.each do |old|
-      ar = old.transform_attachment_reference(store, logger)
+      ar = nil
+      begin
+        try ||= 3
+        ar = old.transform_attachment_reference(store, logger)
+      rescue Exception => e
+        # There are uniq validation exceptions in concurrency environments, rescue and retry.
+        if try > 0
+          try -= 1
+          sleep 1
+          retry
+        else
+          logger.log "#{old.class} #{old.id}: #{e.message}"
+        end
+      end
 
       store.set(model.table_name, old.id, ar.attachment.id) if ar
     end
