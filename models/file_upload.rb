@@ -24,7 +24,7 @@ module V1
       if copy_url
         copy_url
       else
-        URL_PREFIX + id_partition + '/original/' + file_file_name
+        URL_PREFIX + id_partition + '/original/' + URI.escape(file_file_name)
       end
     end
 
