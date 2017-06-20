@@ -99,6 +99,7 @@ class CourseMigrator
       ts += [
         CourseUserTable,
         AchievementTable,
+        UserAchievementTable,
         LevelTable,
         ExpRecordTable,
         LessonPlanMilestoneTable,
