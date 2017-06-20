@@ -11,6 +11,7 @@ unless defined?(Rails::Console)
 
   $url_mapper = UrlHashMapper.new
   # UserMigrator.new.start
+  # AttachmentMigrator.new.start
 
   course_ids = []
   begin
