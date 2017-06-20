@@ -60,11 +60,20 @@ class CourseTable < BaseTable
           if File.extname(logo_file.path).blank?
             logo_file.close
             # it seems that png works for all courses, need to double check after migration
-            path = logo_file.path + '.png'
-            FileUtils.cp(logo_file.path, logo_file.path + '.png')
-            logo_file = File.new(path)
+            new_path = logo_file.path + '.png'
+            FileUtils.cp(logo_file.path, new_path)
+            logo_file = File.new(new_path)
             logger.log("Missing logo extension: Course #{old.id}")
           end
+
+          if File.extname(logo_file.path) == '.jfif'
+            logo_file.close
+            new_path = logo_file.path.gsub(/jfif\z/, 'jpeg')
+            FileUtils.cp(logo_file.path, new_path)
+            logo_file = File.new(new_path)
+            logger.log("Changed logo file extension from JFIF to JPEG: Course #{old.id}")
+          end
+
           new.logo = logo_file
           logo_file.close unless logo_file.closed?
         end
