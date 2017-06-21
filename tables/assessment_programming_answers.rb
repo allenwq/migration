@@ -37,12 +37,21 @@ class AssessmentProgrammingAnswerTable < BaseTable
           new.files.build(filename: 'template.py', content: old.content.sub("\u0000", ''))
         end
 
-        skip_saving_unless_valid
+        if skip_validation?
+          new.save!(validate: false)
+        else
+          skip_saving_unless_valid
+        end
 
         store.set(V1::AssessmentAnswer.table_name, old.assessment_answer.id, new.acting_as.id)
         store.set(model.table_name, old.id, new.id) if new.persisted?
       end
     end
+  end
+
+  def skip_validation?
+    # From the log there's no validation for these courses, skip to improve performance
+    [21, 56].include?(course_ids[0])
   end
 end
 
