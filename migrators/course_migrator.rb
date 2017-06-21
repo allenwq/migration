@@ -110,6 +110,15 @@ class CourseMigrator
         ForumTopicViewTable,
         ForumPostTable,
         ForumPostVoteTable,
+        ForumSubscriptionTable,
+        ForumTopicSubscriptionTable,
+
+        GroupTable,
+        GroupUserTable,
+        GuildTable,
+        GuildUserTable,
+        CourseUserInvitationTable,
+        EnrolRequestTable,
 
         AssessmentTabTable,
         AssessmentTable,
@@ -121,28 +130,15 @@ class CourseMigrator
         AssessmentScribingQuestionTable,
         AssessmentProgrammingQuestionTable,
 
-        AssessmentSubmissionTable,
-        AssessmentMcqAnswerTable,
-        AssessmentMcqAnswerOptionTable,
-        AssessmentTrqAnswerTable,
-        AssessmentScribingAnswerTable,
-        AssessmentAnswerScribbleTable,
-        AssessmentProgrammingAnswerTable,
-
         AssessmentSkillGroupTable,
         AssessmentSkillTable,
         AssessmentQuestionSkillTable,
-        CommentTopicTable,
-        AssessmentCommentTable,
-        AssessmentAnnotationTable,
-
         ConditionTable,
         AssessmentConditionTable,
 
         MaterialFolderTable,
         MaterialTable,
         LessonPlanEventMaterialTable,
-
         AnnouncementTable, # Announcements depends on materials
 
         SurveyTable,
@@ -155,16 +151,18 @@ class CourseMigrator
 
         LessonPlanTodoTable,
         ActivityTable,
-        EnrolRequestTable,
 
-        GroupTable,
-        GroupUserTable,
-        GuildTable,
-        GuildUserTable,
-        CourseUserInvitationTable,
+        AssessmentSubmissionTable,
+        AssessmentMcqAnswerTable,
+        AssessmentMcqAnswerOptionTable,
+        AssessmentTrqAnswerTable,
+        AssessmentScribingAnswerTable,
+        AssessmentAnswerScribbleTable,
+        AssessmentProgrammingAnswerTable,
 
-        ForumSubscriptionTable,
-        ForumTopicSubscriptionTable,
+        CommentTopicTable,
+        AssessmentCommentTable,
+        AssessmentAnnotationTable,
         CommentSubscriptionTable,
       ].map { |t| t.new(store, logger, course_id, concurrency) }
 
