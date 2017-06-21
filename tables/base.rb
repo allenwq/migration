@@ -1,11 +1,13 @@
 class BaseTable
-  attr_reader :store, :logger, :course_ids, :concurrency
+  attr_reader :store, :logger, :course_ids, :concurrency, :records_processed
 
   def initialize(store, logger, course_ids = [], concurrency = 1)
     @store = store
     @course_ids = Array(course_ids)
     @logger = logger
     @concurrency = concurrency
+    @records_processed = 0
+
     setup_tenant_and_stamper
 
     if concurrency > 1
@@ -54,6 +56,8 @@ class BaseTable
       @worker.wait if @worker
     end
 
+    verify_count!
+
     logger.log("Finished in #{time.round(1)}s")
   end
 
@@ -75,7 +79,7 @@ class BaseTable
   end
 
   def process_in_batches?
-    parallel?
+    source_records.respond_to?(:find_in_batches)
   end
 
   protected
@@ -111,6 +115,8 @@ class BaseTable
   end
 
   def process_batch(batch)
+    @records_processed += batch.size
+
     if !parallel?
       migrate_batch(batch)
     else
@@ -131,6 +137,13 @@ class BaseTable
 
   def parallel?
     concurrency > 1
+  end
+
+  def verify_count!
+    count = source_records.count
+    if count != records_processed
+      raise "Records processed(#{records_processed}) and total number of records(#{count}) does not match"
+    end
   end
 end
 
