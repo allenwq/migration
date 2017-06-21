@@ -20,6 +20,10 @@ class SurveyQuestionTable < BaseTable
             :multiple_response
           when 3
             :text
+          when nil
+            # All question with nil type_id belong to Survey 6, Course 21,
+            # which is a runes contest MRQ.
+            :multiple_response
           end
         end
         column :description do
