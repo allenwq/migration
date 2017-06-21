@@ -14,7 +14,13 @@ class LessonPlanEventMaterialTable < BaseTable
           store.get(V1::Material.table_name, old.obj_id)
         end
 
-        skip_saving_unless_valid
+        if new.material_id.blank?
+          # There are records point to the material in other courses, material_id is nil in this case...
+          logger.log "Invalid #{old.class} #{old.id}: material_id is nil"
+        else
+          skip_saving_unless_valid
+        end
+
         store.set(model.table_name, old.id, new.id)
       end
     end
