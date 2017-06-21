@@ -13,6 +13,7 @@ class LevelTable < BaseTable
 
         if new_lvl
           new_lvl.update_columns(updated_at: old.updated_at, created_at: old.created_at)
+          store.set(model.table_name, old.id, new_lvl.id)
           next
         end
       end
